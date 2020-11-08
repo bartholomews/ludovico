@@ -7,6 +7,7 @@
   :dependencies [[org.clojure/clojure "1.10.1"]             ; https://github.com/clojure/clojure
                  [org.clojure/clojurescript "1.10.773"      ; https://github.com/clojure/clojurescript
                   :scope "provided"]
+                 [org.clojure/core.match "1.0.0"]           ; https://github.com/clojure/core.match
                  [hiccup "1.0.5"]                           ; https://github.com/weavejester/hiccup
                  [metosin/jsonista "0.2.7"]                 ; https://github.com/metosin/jsonista
                  [metosin/reitit "0.5.10"]                  ; https://github.com/metosin/reitit
