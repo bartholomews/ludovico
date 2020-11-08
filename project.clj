@@ -4,20 +4,22 @@
   :license {:name "GNU General Public License version 3"
             :url  "http://opensource.org/licenses/GPL-3.0"}
 
-  :dependencies [[org.clojure/clojure "1.10.1"]
-                 [org.clojure/clojurescript "1.10.773" :scope "provided"]
-                 [hiccup "1.0.5"]
-                 [metosin/jsonista "0.2.6"]
-                 [metosin/reitit "0.5.1"]
-                 [pez/clerk "1.0.0"]
-                 [quil "3.1.0"]
-                 [reagent "0.10.0"]
-                 [reagent-utils "0.3.3"]
-                 [ring "1.8.1"]
-                 [ring/ring-defaults "0.3.2"]
-                 [ring-server "0.5.0"]
-                 [venantius/accountant "0.2.5" :exclusions [org.clojure/tools.reader]]
-                 [yogthos/config "1.1.7"]]
+  :dependencies [[org.clojure/clojure "1.10.1"]             ; https://github.com/clojure/clojure
+                 [org.clojure/clojurescript "1.10.773"      ; https://github.com/clojure/clojurescript
+                  :scope "provided"]
+                 [hiccup "1.0.5"]                           ; https://github.com/weavejester/hiccup
+                 [metosin/jsonista "0.2.7"]                 ; https://github.com/metosin/jsonista
+                 [metosin/reitit "0.5.10"]                  ; https://github.com/metosin/reitit
+                 [pez/clerk "1.0.0"]                        ; https://github.com/PEZ/clerk
+                 [quil "3.1.0"]                             ; https://github.com/quil/quil
+                 [reagent "0.10.0"]                         ; https://github.com/reagent-project/reagent
+                 [reagent-utils "0.3.3"]                    ; https://github.com/reagent-project/reagent-utils
+                 [ring "1.8.2"]                             ; https://github.com/ring-clojure/ring
+                 [ring/ring-defaults "0.3.2"]               ; https://github.com/ring-clojure/ring-defaults
+                 [ring-server "0.5.0"]                      ; https://github.com/weavejester/ring-server
+                 [venantius/accountant "0.2.5"              ; https://github.com/venantius/accountant
+                  :exclusions [org.clojure/tools.reader]]
+                 [yogthos/config "1.1.7"]]                  ; https://github.com/yogthos/config
 
   :plugins [[lein-asset-minifier "0.4.6" :exclusions [org.clojure/clojure]]
             [lein-cljsbuild "1.1.7"]
