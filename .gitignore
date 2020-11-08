@@ -16,3 +16,4 @@ pom.xml.asc
 /.env
 /.sass-cache
 /node_modules
+.rebel_readline_history
