@@ -37,6 +37,12 @@
               :on-click #(sketch/start)
               ; #(swap! click-count inc)
               }]
+
+     ; TODO: Render conditionally
+     [:input {:type     "button" :value "Pause/unpause"
+              :on-click #(sketch/onSketchToggleClick)
+              }]
+
      [:div#sketch]
      [:ul
       [:li [:a {:href (path-for :songs)} "Songs list"]]
