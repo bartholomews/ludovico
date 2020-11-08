@@ -6,6 +6,7 @@
     [reitit.frontend :as reitit]
     [clerk.core :as clerk]
     [accountant.core :as accountant]
+    [goog.dom :as gdom]
     [ludovico.sketch :as sketch]
     ))
 
@@ -99,7 +100,7 @@
 ;; Initialize app
 
 (defn mount-root []
-  (rdom/render [current-page] (.getElementById js/document "app")))
+  (rdom/render [current-page] (gdom/getElement "app")))
 
 (defn init! []
   (clerk/initialize!)
