@@ -1,6 +1,6 @@
-# ludovico
+# Ludovico
 
-This is the ludovico project.
+This is the Ludovico project.
 
 ## Development mode
 

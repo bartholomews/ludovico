@@ -7,7 +7,7 @@
 
 (def mount-target
   [:div#app
-   [:h2 "Welcome to ludovico"]
+   [:h2 "Welcome to Ludovico"]
    [:p "please wait while Figwheel is waking up ..."]
    [:p "(Check the js console for hints if nothing exciting happens.)"]])
 
@@ -36,10 +36,10 @@
   (reitit-ring/ring-handler
    (reitit-ring/router
     [["/" {:get {:handler index-handler}}]
-     ["/items"
+     ["/songs"
       ["" {:get {:handler index-handler}}]
-      ["/:item-id" {:get {:handler index-handler
-                          :parameters {:path {:item-id int?}}}}]]
+      ["/:song-id" {:get {:handler index-handler
+                          :parameters {:path {:song-id int?}}}}]]
      ["/about" {:get {:handler index-handler}}]])
    (reitit-ring/routes
     (reitit-ring/create-resource-handler {:path "/" :root "/public"})
