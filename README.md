@@ -4,6 +4,10 @@ This is the Ludovico project.
 
 ## Development mode
 
+Running the Figwheel built in server doesn't seem to work with `cljs-bach`  
+(might be an issue similar to https://github.com/luminus-framework/luminus-template/issues/237)  
+So you need to run the standalone server at port 3000.
+
 To start the Figwheel compiler, navigate to the project folder and run the following command in the terminal:
 
 ```

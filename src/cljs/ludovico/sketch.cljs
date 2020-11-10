@@ -21,6 +21,7 @@
   )
 
 (defn onSketchToggleClick []
+  (js/console.log (getSketch))
   (swap! paused not)
   (cond
     (nil? (getSketch)) (js/console.log "TODO: Should probably hide or disable the pause/unpause btn")

@@ -22,8 +22,14 @@
   (html5
    (head)
    [:body {:class "body-container"}
-    mount-target
-    (include-js "/js/app.js")]))
+    mount-target (include-js "/js/app.js")
+    ; FIXME: Try to use a clojure-only thing like Leipzig
+    ; https://www.midijs.net/
+    [:script {:type "text/javascript", :src (hiccup.util/to-uri "//www.midijs.net/lib/midi.js")}]
+    ; https://www.jsdelivr.com/package/npm/midiconvert
+    [:script {:type "text/javascript", :src (hiccup.util/to-uri "https://cdn.jsdelivr.net/npm/midiconvert@0.4.7/build/MidiConvert.min.js")}]
+    ]
+   ))
 
 
 (defn index-handler

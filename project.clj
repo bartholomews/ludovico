@@ -8,10 +8,13 @@
                  [org.clojure/clojurescript "1.10.773"      ; https://github.com/clojure/clojurescript
                   :scope "provided"]
                  [org.clojure/core.match "1.0.0"]           ; https://github.com/clojure/core.match
+                 [org.clojure/java.data "1.0.86"]           ; https://github.com/clojure/java.data
+                 [cljs-bach "0.3.0"]                        ; https://github.com/ctford/cljs-bach
                  [hiccup "1.0.5"]                           ; https://github.com/weavejester/hiccup
                  [metosin/jsonista "0.2.7"]                 ; https://github.com/metosin/jsonista
                  [metosin/reitit "0.5.10"]                  ; https://github.com/metosin/reitit
                  [pez/clerk "1.0.0"]                        ; https://github.com/PEZ/clerk
+                 [prismatic/dommy "1.1.0"]                  ; https://github.com/plumatic/dommy
                  [quil "3.1.0"]                             ; https://github.com/quil/quil
                  [reagent "0.10.0"]                         ; https://github.com/reagent-project/reagent
                  [reagent-utils "0.3.3"]                    ; https://github.com/reagent-project/reagent-utils
@@ -108,7 +111,7 @@
                        :source-paths ["env/dev/clj"]
                        :plugins      [[deraen/lein-sass4clj "0.3.1"]
                                       [lein-doo "0.1.10"]
-                                      [lein-figwheel "0.5.20"]
+                                      [lein-figwheel "0.5.20"] ; https://github.com/bhauman/lein-figwheel
                                       ]
 
                        :injections   [(require 'pjstadig.humane-test-output)
