@@ -1,6 +1,6 @@
 (ns ludovico.core
   (:require
-    [dommy.core :as dommy :refer-macros [sel sel1]]
+    [dommy.core :refer-macros [sel sel1]]
     [reagent.core :as reagent :refer [atom]]
     [reagent.dom :as rdom]
     [reagent.session :as session]
@@ -8,21 +8,11 @@
     [clerk.core :as clerk]
     [accountant.core :as accountant]
     [goog.dom :as gdom]
-    [ludovico.sketch :as sketch]
     [ludovico.player :as player]
     ))
 
 ;; -------------------------
 ;; Routes
-
-(def playBtnId "play-btn")
-
-(.addEventListener
-  js/window
-  "DOMContentLoaded"
-  ;(fn [] (player/init (gdom/getElement playBtnId)))
-  (fn [] (player/init (sel1 :#play-btn)))
-  )
 
 (def router
   (reitit/router
@@ -40,6 +30,12 @@
 ;; -------------------------
 ;; Page components
 
+(.addEventListener
+  js/window
+  "DOMContentLoaded"
+  (fn [] (player/on-midi-loaded))
+  )
+
 (defn home-page []
   (fn []
     [:span.main
@@ -50,21 +46,12 @@
      [:audio {:id "audio-track" :src "midi/fur_elise.mid" :status "stopped"}]
      [:div
       ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
-      [:button {:id "play-btn" :role "switch" :aria-checked "false"}
+      [:button {:id       "play-btn" :role "switch" :aria-checked "false"
+                :on-click #(player/on-player-btn-click)
+                }
        [:span "Play/Pause"]]
       ]
      ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-     [:input {:type     "button" :value "Restart sketch"
-              :on-click #(sketch/start)
-              ; #(swap! click-count inc)
-              }]
-     ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     ; TODO: Render conditionally
-     [:input {:type     "button" :value "Pause/unpause"
-              :on-click #(sketch/onSketchToggleClick)
-              }]
-
      [:div#sketch]
      [:ul
       [:li [:a {:href (path-for :songs)} "Songs list"]]

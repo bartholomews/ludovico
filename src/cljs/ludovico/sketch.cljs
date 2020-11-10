@@ -20,7 +20,7 @@
                  )
   )
 
-(defn onSketchToggleClick []
+(defn toggle []
   (js/console.log (getSketch))
   (swap! paused not)
   (cond

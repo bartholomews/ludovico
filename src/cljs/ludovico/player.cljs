@@ -3,7 +3,6 @@
     [cljs-bach.synthesis :as bach]
     [cljs.core.match :refer-macros [match]]
     [dommy.core :as dommy :refer-macros [sel sel1]]
-    [goog.object :as g]
     [ludovico.sketch :as sketch]
     ))
 
@@ -29,7 +28,7 @@
   (. (getSource) (connect (getDestination)))
   )
 
-(defn debugThings []
+(defn debug []
   (js/console.log "SOURCE:")
   (js/console.log (getSource))
   (js/console.log "DESTINATION:")
@@ -51,17 +50,20 @@
 
 (defn play [el]
   (srcF js/MIDIjs.play el)
-  (dommy/set-attr! el :status "playing"))
+  (dommy/set-attr! el :status "playing")
+  (sketch/start))
 
 (defn pause [el]
   (srcF js/MIDIjs.pause el)
-  (dommy/set-attr! el :status "paused"))
+  (dommy/set-attr! el :status "paused")
+  (sketch/toggle))
 
 (defn resume [el]
   (srcF js/MIDIjs.resume el)
-  (dommy/set-attr! el :status "playing"))
+  (dommy/set-attr! el :status "playing")
+  (sketch/toggle))
 
-(defn onPlayerButtonClick []
+(defn on-player-btn-click []
   "https://www.midijs.net/midijs_api.html"
   (js/console.log "midi-js handler")
   (let [el (getAudioElement)]
@@ -73,7 +75,7 @@
     )
   )
 
-(defn midi-convert []
+(defn parse-midi []
   "https://www.midijs.net/midijs_api.html"
   (let [src (. (getAudioElement) -src)]
     (js/console.log src)
@@ -85,11 +87,10 @@
     )
   )
 
-(defn init [playBtn]
+(defn on-midi-loaded []
   "https://github.com/prasincs/web-audio-project/blob/master/src-cljs/web_audio_project/client.cljs"
-  (js/console.log "player/init")
+  (js/console.log "on_midi_loaded")
   ; https://www.midijs.net/midijs_api.html
   (js/console.log (js/MIDIjs.get_audio_status))
-  (midi-convert)
-  (dommy/listen! playBtn :click onPlayerButtonClick)
+  (parse-midi)
   )
