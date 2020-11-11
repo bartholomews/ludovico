@@ -1,6 +1,7 @@
 (ns ludovico.core
   (:require
-    [dommy.core :refer-macros [sel sel1]]
+    [cljs.core.match :refer-macros [match]]
+    [dommy.core :as dommy :refer-macros [sel sel1]]
     [reagent.core :as reagent :refer [atom]]
     [reagent.dom :as rdom]
     [reagent.session :as session]
@@ -9,7 +10,7 @@
     [accountant.core :as accountant]
     [goog.dom :as gdom]
     [ludovico.player :as player]
-    ))
+    [reagent.core :as r]))
 
 ;; -------------------------
 ;; Routes
@@ -36,6 +37,8 @@
   (fn [] (player/on-midi-loaded))
   )
 
+(defn create-sketch-canvas [counter] [:div {:id (str "sketch-" counter) :class "sketch" :data-counter counter}])
+
 (defn home-page []
   (fn []
     [:span.main
@@ -46,20 +49,22 @@
      [:audio {:id "audio-track" :src "midi/fur_elise.mid" :status "stopped"}]
      [:div
       ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
-      [:button {:id       "play-btn" :role "switch" :aria-checked "false"
-                :on-click #(player/on-player-btn-click)
+      [:button#play-toggle-btn {:role "switch" :aria-checked "false" :on-click #(player/on-player-btn-click)}
+       [:span @player/play-toggle-btn-label]
+       ]
+
+      [:button {:id       "play-stop-btn" :role "switch" :aria-checked "false"
+                :on-click #(player/stop (player/getAudioElement))
                 }
-       [:span "Play/Pause"]]
+       [:span "Stop"]]
       ]
      ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     [:div#sketch]
+     (create-sketch-canvas 1)
      [:ul
       [:li [:a {:href (path-for :songs)} "Songs list"]]
       ]]
     )
   )
-
-
 
 (defn songs-page []
   (fn []

@@ -4,11 +4,16 @@
     [cljs.core.match :refer-macros [match]]
     [dommy.core :as dommy :refer-macros [sel sel1]]
     [ludovico.sketch :as sketch]
+    [reagent.core :as r]
     ))
 
 ; https://github.com/ctford/cljs-bach
 ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
 (defonce context (bach/audio-context))
+
+(def play-toggle-btn-label (r/atom "Play"))
+(defn get-sketch-canvas-element [] (sel1 :.sketch))
+(defn get-sketch-canvas-counter [] (dommy/attr (sel1 :.sketch) :data-counter))
 
 (defn getAudioElement [] (sel1 :#audio-track))
 
@@ -46,35 +51,6 @@
 ;  (. (getAudioElement) play)
 ;  )
 
-(defn srcF [f el] (f (dommy/attr el "src")))
-
-(defn play [el]
-  (srcF js/MIDIjs.play el)
-  (dommy/set-attr! el :status "playing")
-  (sketch/start))
-
-(defn pause [el]
-  (srcF js/MIDIjs.pause el)
-  (dommy/set-attr! el :status "paused")
-  (sketch/toggle))
-
-(defn resume [el]
-  (srcF js/MIDIjs.resume el)
-  (dommy/set-attr! el :status "playing")
-  (sketch/toggle))
-
-(defn on-player-btn-click []
-  "https://www.midijs.net/midijs_api.html"
-  (js/console.log "midi-js handler")
-  (let [el (getAudioElement)]
-    (match [(dommy/attr el :status)]
-           ["stopped"] (play el)
-           ["playing"] (pause el)
-           ["paused"] (resume el)
-           )
-    )
-  )
-
 (defn parse-midi []
   "https://www.midijs.net/midijs_api.html"
   (let [src (. (getAudioElement) -src)]
@@ -87,10 +63,69 @@
     )
   )
 
-(defn on-midi-loaded []
-  "https://github.com/prasincs/web-audio-project/blob/master/src-cljs/web_audio_project/client.cljs"
-  (js/console.log "on_midi_loaded")
-  ; https://www.midijs.net/midijs_api.html
-  (js/console.log (js/MIDIjs.get_audio_status))
-  (parse-midi)
+(defn srcF [f el] (f (dommy/attr el "src")))
+
+(defn play [el]
+  (let [counter (get-sketch-canvas-counter)]
+    (srcF js/MIDIjs.play el)
+    (sketch/start counter (parse-midi))
+    (dommy/set-attr! el :status "playing")
+    (swap! play-toggle-btn-label (fn [] "Pause"))
+    )
   )
+
+(defn pause [el]
+  (let [counter (get-sketch-canvas-counter)]
+    (srcF js/MIDIjs.pause el)
+    (sketch/toggle counter)
+    (dommy/set-attr! el :status "paused")
+    (swap! play-toggle-btn-label (fn [] "Play"))
+    )
+  )
+
+(defn resume [el]
+  (let [counter (get-sketch-canvas-counter)]
+    (srcF js/MIDIjs.resume el)
+    (sketch/toggle counter)
+    (dommy/set-attr! el :status "playing")
+    (swap! play-toggle-btn-label (fn [] "Pause"))
+    )
+  )
+
+(defn stop [el]
+  (let [counter (get-sketch-canvas-counter)]
+    (srcF js/MIDIjs.stop el)
+    (sketch/exit counter)
+    (dommy/set-attr! el :status "stopped")
+    (swap! play-toggle-btn-label (fn [] "Play"))
+    (let [sketch-canvas (get-sketch-canvas-element)
+          new-counter (+ (int counter) 1)
+          ]
+      (dommy/replace! sketch-canvas
+                      (dommy/set-attr! sketch-canvas
+                                       :id (str "sketch-" new-counter)
+                                       :data-counter new-counter
+                                       )
+                      )
+      )
+    )
+  )
+
+  (defn on-player-btn-click []
+    "https://www.midijs.net/midijs_api.html"
+    (let [el (getAudioElement)]
+      (match [(dommy/attr el :status)]
+             ["stopped"] (play el)
+             ["playing"] (pause el)
+             ["paused"] (resume el)
+             )
+      )
+    )
+
+  (defn on-midi-loaded []
+    "https://github.com/prasincs/web-audio-project/blob/master/src-cljs/web_audio_project/client.cljs"
+    (js/console.log "on_midi_loaded")
+    ; https://www.midijs.net/midijs_api.html
+    (js/console.log (js/MIDIjs.get_audio_status))
+    (parse-midi)
+    )
