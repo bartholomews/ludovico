@@ -23,25 +23,33 @@
   (. context (createMediaElementSource (getAudioElement)))
   )
 
-(defn getDestination []
+(defn get-destination []
   "https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API#Controlling_sound"
   ;(bach/destination context nil nil) ; bach sink node with :output prop only: could be useful when using both synth and files
-  (.-destination context)
+  (j/get context :destination)
   )
 
-(defn getConnection []
-  "TODO"
-  (. (getSource) (connect (getDestination)))
-  )
+;(defn getConnection []
+;  "TODO"
+;  (. (getSource) (bach/connect (destination)))
+;  )
 
-(defn debug []
+(defn ping [freq]
+  (bach/connect->
+    (bach/square freq)         ; Try a sawtooth wave.
+    (bach/percussive 0.01 0.4) ; Try varying the attack and decay.
+    (bach/gain 0.1)))          ; Try a bigger gain.
+
+(defn play-midi-note []
   (js/console.log "SOURCE:")
   (js/console.log (getSource))
-  (js/console.log "DESTINATION:")
-  (js/console.log (getDestination))
-  (js/console.log "CONNECTION:")
-  (js/console.log (getConnection))
-  )
+  ;(js/console.log "DESTINATION:")
+  ;(js/console.log (destination))
+  ;(js/console.log "CONNECTION:")
+  ;(js/console.log (getConnection))
+  (-> (ping 440)
+      (bach/connect-> bach/destination)
+      (bach/run-with context (bach/current-time context) 1.0)))
 
 ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API#Controlling_sound
 ;(defn web-api-handler [evt]

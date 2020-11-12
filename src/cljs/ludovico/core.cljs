@@ -43,7 +43,8 @@
   (fn []
     [:span.main
      [:h1 "Ludovico"]
-
+     [:button {:aria-checked "false" :on-click #(player/play-midi-note)}
+      [:span "Bach"]]
      ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      ;[:audio {:src "midi/0004135.mp3"}]
      [:audio {:id "audio-track" :src "midi/fur_elise.mid" :status "stopped"}]
