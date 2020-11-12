@@ -37,8 +37,6 @@
   (fn [] (player/on-midi-loaded))
   )
 
-(defn create-sketch-canvas [counter] [:div {:id (str "sketch-" counter) :class "sketch" :data-counter counter}])
-
 (defn home-page []
   (fn []
     [:span.main
@@ -59,8 +57,7 @@
                 }
        [:span "Stop"]]
       ]
-     ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     (create-sketch-canvas 1)
+     [:div#sketch]
      [:ul
       [:li [:a {:href (path-for :songs)} "Songs list"]]
       ]]

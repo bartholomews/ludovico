@@ -12,9 +12,7 @@
 ; https://www.reddit.com/r/Clojure/comments/afazxb/repl_workflow_in_quil/
 (def paused (atom false))
 
-(defn getSketchId [counter] (str "sketch-" counter))
-
-(defn getSketch [counter] (q/get-sketch-by-id (getSketchId counter)))
+(defn getSketch [] (q/get-sketch-by-id "sketch"))
 
 (defn toggleSketch [sketch]
   (q/with-sketch sketch
@@ -24,19 +22,19 @@
                  )
   )
 
-(defn exit [counter]
+(defn exit []
   (js/console.log "SKETCH EXIT")
-  (q/with-sketch (getSketch counter)
+  (q/with-sketch (getSketch)
                  (q/exit)
                  ; (q/start-loop)
                  )
   )
 
-(defn toggle [counter]
+(defn toggle []
   (swap! paused not)
   (cond
-    (nil? (getSketch counter)) (js/console.error "Attempting to start sketch before being initialised")
-    :else (toggleSketch (getSketch counter))
+    (nil? (getSketch)) (js/console.error "Attempting to start sketch before being initialised")
+    :else (toggleSketch (getSketch))
     )
   )
 
@@ -169,10 +167,9 @@
 ; https://github.com/quil/quil/wiki/ClojureScript
 ; https://github.com/quil/quil/wiki/Functional-mode-%28fun-mode%29
 ;; TODO proper delay-frame, non lagging timer
-(defn start [counter midi-track]
-  (js/console.log (getSketchId counter))
+(defn start [midi-track]
   (q/sketch
-    :host (getSketchId counter)
+    :host "sketch"
     :size [500 500]
     :setup (setup 30 5000 midi-track)
     :draw draw

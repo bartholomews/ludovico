@@ -13,8 +13,7 @@
 (defonce context (bach/audio-context))
 
 (def play-toggle-btn-label (r/atom "Play"))
-(defn get-sketch-canvas-element [] (sel1 :.sketch))
-(defn get-sketch-canvas-counter [] (dommy/attr (sel1 :.sketch) :data-counter))
+(defn get-sketch-canvas-element [] (sel1 :#sketch))
 
 (defn getAudioElement [] (sel1 :#audio-track))
 
@@ -77,51 +76,33 @@
 (defn srcF [f el] (f (dommy/attr el "src")))
 
 (defn play [el]
-  (let [counter (get-sketch-canvas-counter)]
     (with-fixed-delay #(js/MIDIjs.play (dommy/attr el "src")))
     ;(js/setTimeout (js/MIDIjs.play (dommy/attr el "src")) 50000)
     ; #(with-delay (js/MIDIjs.play (dommy/attr el "src")))
-    (with-midi-track (fn [midi-track] (sketch/start counter midi-track)))
+    (with-midi-track (fn [midi-track] (sketch/start midi-track)))
     (dommy/set-attr! el :status "playing")
     (swap! play-toggle-btn-label (fn [] "Pause"))
-    )
   )
 
 (defn pause [el]
-  (let [counter (get-sketch-canvas-counter)]
     (dommy/set-attr! el :status "paused")
     (srcF js/MIDIjs.pause el)
-    (sketch/toggle counter)
+    (sketch/toggle)
     (swap! play-toggle-btn-label (fn [] "Play"))
-    )
   )
 
 (defn resume [el]
-  (let [counter (get-sketch-canvas-counter)]
     (dommy/set-attr! el :status "playing")
     (srcF js/MIDIjs.resume el)
-    (sketch/toggle counter)
+    (sketch/toggle)
     (swap! play-toggle-btn-label (fn [] "Pause"))
-    )
   )
 
 (defn stop [el]
-  (let [counter (get-sketch-canvas-counter)]
     (dommy/set-attr! el :status "stopped")
     (srcF js/MIDIjs.stop el)
-    (sketch/exit counter)
+    (sketch/exit)
     (swap! play-toggle-btn-label (fn [] "Play"))
-    (let [sketch-canvas (get-sketch-canvas-element)
-          new-counter (+ (int counter) 1)
-          ]
-      (dommy/replace! sketch-canvas
-                      (dommy/set-attr! sketch-canvas
-                                       :id (str "sketch-" new-counter)
-                                       :data-counter new-counter
-                                       )
-                      )
-      )
-    )
   )
 
 (defn on-player-btn-click []
