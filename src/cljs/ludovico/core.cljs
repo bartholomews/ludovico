@@ -41,7 +41,7 @@
   (fn []
     [:span.main
      [:h1 "Ludovico"]
-     [:button {:aria-checked "false" :on-click #(player/play-midi-note)}
+     [:button {:aria-checked "false" :on-click #(player/play-midi-note 74)}
       [:span "Bach"]]
      ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      ;[:audio {:src "midi/0004135.mp3"}]

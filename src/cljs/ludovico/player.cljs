@@ -32,21 +32,57 @@
 ;  "TODO"
 ;  (. (getSource) (bach/connect (destination)))
 ;  )
+(defn leipzig-wat []
+  [{:time     0
+    :pitch    67
+    :duration 2
+    :part     :melody}
+   {:time     2
+    :pitch    71
+    :duration 2
+    :part     :melody}]
+  )
 
-(defn ping [freq]
+;(defn synth [note]
+;  (bach/connect->
+;    (bach/add (bach/square (* 1.01 (:pitch note))) (bach/sawtooth (:pitch note)))
+;    (bach/low-pass 600)
+;    (bach/adsr 0.001 0.4 0.5 0.1)
+;    (bach/gain 0.15)))
+
+;(def melody
+;  ; The durations and pitches of the notes. Try changing them.
+;  (->> (bach/phrase [1 1/2 1/2 1 1 2 2] [0 1 0 2 -3 1 -1])
+;       (bach/all :instrument synth))) ; Here we choose the instrument.
+
+;(defn ping2 [note]
+;  (bach/connect->
+;    (bach/triangle (:pitch note))                           ; Try a sawtooth wave.
+;    (bach/percussive 0.01 0.4)                              ; Try varying the attack and decay.
+;    (bach/gain 0.1))
+;  )
+
+; https://medium.com/swinginc/playing-with-midi-in-javascript-b6999f2913c3
+; f = (2^(m-69)/12) * 440 Hz
+(defn to-frequency [midi-number]
+  (let [exp (/ (- midi-number 69) 12)] (* (Math/pow 2 exp) 440))
+  )
+
+(defn ping [midi-number]
   (bach/connect->
-    (bach/square freq)                                      ; Try a sawtooth wave.
-    (bach/percussive 0.01 0.4)                              ; Try varying the attack and decay.
-    (bach/gain 0.1)))                                       ; Try a bigger gain.
+    (bach/triangle (to-frequency midi-number))
+    (bach/percussive 0.01 0.4)
+    (bach/gain 0.1))
+  )
 
-(defn play-midi-note []
-  (js/console.log "SOURCE:")
-  (js/console.log (getSource))
+(defn play-midi-note [midi-number]
+  ;(js/console.log "SOURCE:")
+  ;(js/console.log (getSource))
   ;(js/console.log "DESTINATION:")
   ;(js/console.log (destination))
   ;(js/console.log "CONNECTION:")
   ;(js/console.log (getConnection))
-  (-> (ping 440)
+  (-> (ping midi-number)
       (bach/connect-> bach/destination)
       (bach/run-with context (bach/current-time context) 1.0)))
 

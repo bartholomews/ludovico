@@ -62,7 +62,7 @@
     (q/fill 0xff7bcecc)
     ; TODO: Could take like the first n notes + acc the rest,
     ;   after each update you take out of played once and take from acc to be n again
-    {:notes      (take 40 (j/get midi-track :notes))
+    {:notes      (j/get midi-track :notes)                  ; (take 40 (j/get midi-track :notes))
      :frame-rate frame-rate
      :start      (+ (q/millis) fixed-delay)}
     )
@@ -88,7 +88,10 @@
   ;(js/console.log "current-time:")
   ;(js/console.log (get-elapsed-time state))
   ;(js/console.log (not (> (get-elapsed-time state) (get note :time))))
-  (not (> (get-elapsed-time state) (j/get note :time)))
+  (let [has-been-played (> (get-elapsed-time state) (j/get note :time))]
+    (if (= has-been-played true) (ludovico.player/play-midi-note (j/get note :midi)))
+    (not has-been-played)
+    )
   )
 
 (defn update [state]
@@ -101,6 +104,7 @@
   ;  (= my-state true) (js/console.log "TRUE")
   ;  :else (js/console.log "FALSE"))
   (let [
+        ; FIXME: `take-while` they are played
         filtered-notes (filter (fn [note] (not-played note state)) (get state :notes))
         new-state (assoc state :notes filtered-notes)
         ;new-state {
@@ -219,7 +223,7 @@
     ; piano setup: (21 A0) => (108 C8) = 88 cols.
     ; tile width = canvas width / 88
     :size [880 500]
-    :setup (setup 30 5000 midi-track)
+    :setup (setup 80 5000 midi-track)
     :draw draw
     :update update
     :key-pressed handle-keypress

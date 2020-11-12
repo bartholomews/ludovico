@@ -10,6 +10,7 @@
                  [applied-science/js-interop "0.2.7"]       ; https://github.com/applied-science/js-interop
                  [org.clojure/core.match "1.0.0"]           ; https://github.com/clojure/core.match
                  [org.clojure/java.data "1.0.86"]           ; https://github.com/clojure/java.data
+                 [org.clojure/math.numeric-tower "0.0.4"]   ; https://github.com/clojure/math.numeric-tower
                  [cljs-bach "0.3.0"]                        ; https://github.com/ctford/cljs-bach
                  [hiccup "1.0.5"]                           ; https://github.com/weavejester/hiccup
                  [metosin/jsonista "0.2.7"]                 ; https://github.com/metosin/jsonista
