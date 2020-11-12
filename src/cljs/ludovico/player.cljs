@@ -64,11 +64,15 @@
   (js/MidiConvert.load (. (getAudioElement) -src)
                        (fn [midi-js] (callback (parse-midi midi-js)))))
 
+(defn with-fixed-delay [f] (js/setTimeout f 5000))
+
 (defn srcF [f el] (f (dommy/attr el "src")))
 
 (defn play [el]
   (let [counter (get-sketch-canvas-counter)]
-    (srcF js/MIDIjs.play el)
+    (with-fixed-delay #(js/MIDIjs.play (dommy/attr el "src")))
+    ;(js/setTimeout (js/MIDIjs.play (dommy/attr el "src")) 50000)
+    ; #(with-delay (js/MIDIjs.play (dommy/attr el "src")))
     (with-midi-track (fn [midi-track] (sketch/start counter midi-track)))
     (dommy/set-attr! el :status "playing")
     (swap! play-toggle-btn-label (fn [] "Pause"))
