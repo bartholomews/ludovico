@@ -48,6 +48,11 @@
     )
   )
 
+(def split-time [notes]
+  "Take from notes until note is > 10s away from current run time"
+  (take-while notes )
+  )
+
 ; Setup - returns initial state
 (defn setup [frame-rate fixed-delay midi-track]
   (fn []
@@ -66,16 +71,6 @@
      :frame-rate frame-rate
      :start      (+ (q/millis) fixed-delay)}
     )
-  )
-
-(defn handle-keypress [state event]
-  (js/console.log (:key event))
-  ;(match [(:key event)]
-  ;       [:space] (assoc-in state [:paused] true)
-  ;       [:a] (assoc-in state [:paused] false)
-  ;       :else state
-  ;       )
-  state
   )
 
 (defn get-elapsed-time [state]
@@ -208,9 +203,9 @@
 
     ;(q/text (str "Frame rate: " (q/target-frame-rate)) 350 20)
     ;(q/text (str "Frame count: " (/ fps 100)) 350 40)
-    (q/text (str "Start time: " (get state :start)) 350 40)
-    (q/text (str "Current time: " current-time) 350 60)
-    (q/text (str "Millis: " (q/millis)) 350 80)
+    ;(q/text (str "Start time: " (get state :start)) 350 40)
+    ;(q/text (str "Current time: " current-time) 350 60)
+    ;(q/text (str "Millis: " (q/millis)) 350 80)
     )
   )
 
@@ -223,10 +218,9 @@
     ; piano setup: (21 A0) => (108 C8) = 88 cols.
     ; tile width = canvas width / 88
     :size [880 500]
-    :setup (setup 80 5000 midi-track)
+    :setup (setup 240 5000 midi-track)
     :draw draw
     :update update
-    :key-pressed handle-keypress
     :middleware [m/fun-mode]
     )
   )
