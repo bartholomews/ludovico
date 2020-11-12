@@ -75,11 +75,6 @@
         tile-y (* 500 (/ reverse-percentage 100))
         note-duration-ms (j/get note :duration)
         ]
-    ; FIXME: if tile-y > height should already been filtered out in the take-while
-    ;(js/console.log "Distance:")
-    ;(js/console.log distance)
-    ;(js/console.log "Should display at height:")
-    ;(js/console.log tile-y)
     (q/rect (tile-x pitch-midi-number) tile-y tile-width (tile-height note-duration-ms))
     )
   )
@@ -128,10 +123,6 @@
     (q/background 255)
     (q/fill 0)
     ;(q/clear)
-    (js/console.log "all-notes")
-    (js/console.log (count notes))
-    (js/console.log "notes-to-display")
-    (js/console.log (count notes-to-display))
     (dorun (map (fn [note] (display-note-rect note state)) notes-to-display))
     ;(q/text (str "Frame rate: " (q/target-frame-rate)) 350 20)
     ;(q/text (str "Frame count: " (/ fps 100)) 350 40)
