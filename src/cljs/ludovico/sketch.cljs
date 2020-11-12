@@ -1,6 +1,7 @@
 (ns ludovico.sketch
   (:refer-clojure :exclude [update])
   (:require
+    [applied-science.js-interop :as j]
     [cljs.core.match :refer-macros [match]]
     [dommy.core :refer-macros [sel1]]
     [quil.core :as q :include-macros true]
@@ -40,14 +41,19 @@
   )
 
 ; Setup - returns initial state
-(defn setup [midiJson]
+(defn setup [frame-rate midi-track]
   (fn []
+    (js/console.log "Starting sketch")
+    (js/console.log midi-track)
+    (js/console.log (j/get midi-track :notes))
     ; (println "Available fonts:" (q/available-fonts))
-    (q/frame-rate 60)
+    (q/frame-rate frame-rate)
     (q/stroke 0xff3090a1)
     (q/stroke-weight 2)
     (q/fill 0xff7bcecc)
-    {:song midiJson}
+    {:notes      (j/get midi-track :notes)
+     :frame-rate frame-rate
+     :start      (q/millis)}
     )
   )
 
@@ -76,7 +82,11 @@
   (q/background 255)
   (q/fill 0)
   ;(q/text (str "State: " (q/state)) 140 50)
-  (let [frame (q/frame-count)]
+  (let [
+        frame (q/frame-count)
+        fps (/ (q/frame-count) (get state :frame-rate))
+        current-time (- (q/millis) (get state :start))
+        ]
     (q/text (str "Tile position: " (rem frame (q/width))) 140 20)
     ; draw moving box
     (q/rect 50 (rem frame (q/width)) 10 100)
@@ -89,21 +99,22 @@
 
     ;(when (q/mouse-pressed? (q/text (str "Frame rate: " (q/target-frame-rate)) 300 40)))
     ;  (q/frame-rate (inc (* 5 (rem (quot frame 10) 5)))))
+
+    (q/text (str "Frame rate: " (q/target-frame-rate)) 350 20)
+    (q/text (str "Frame count: " (/ fps 1000)) 350 40)
+    (q/text (str "Current time: " current-time) 350 60)
     )
-  (q/text (str "Frame rate: " (q/target-frame-rate)) 300 20)
-  (q/text (str "Frame count: " (q/frame-count)) 300 40)
-  (q/text (str "Millis: " (q/millis)) 300 60)
   )
 
 ; https://github.com/quil/quil/wiki/ClojureScript
 ; https://github.com/quil/quil/wiki/Functional-mode-%28fun-mode%29
 ;; TODO delay-frame
-(defn start [counter midiJson]
+(defn start [counter midi-track]
   (js/console.log (getSketchId counter))
   (q/sketch
     :host (getSketchId counter)
     :size [500 500]
-    :setup (setup midiJson)
+    :setup (setup 50 midi-track)
     :draw draw
     :update update
     :key-pressed handle-keypress
