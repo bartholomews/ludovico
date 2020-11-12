@@ -12,6 +12,16 @@
 ; https://www.reddit.com/r/Clojure/comments/afazxb/repl_workflow_in_quil/
 (def paused (atom false))
 
+; tile width = canvas width / 88
+(def tile-width 10)
+(defn tile-height [note-duration-ms] (* 50 note-duration-ms))
+
+; https://syntheway.com/MIDI_Keyboards_Middle_C_MIDI_Note_Number_60_C4.htm
+(defn tile-x [midi-key]
+  "The x-position of the note tile, supporting 88 keys from 21 (A0) to 108 (C8)"
+  (* tile-width (- midi-key 21))
+  )
+
 (defn getSketch [] (q/get-sketch-by-id "sketch"))
 
 (defn toggleSketch [sketch]
@@ -99,7 +109,7 @@
         ;           :notes        filtered-notes
         ;           }
         ]
-    (js/console.log "update-state")
+    ;(js/console.log "update-state")
     new-state
     )
   )
@@ -141,13 +151,15 @@
       ; 0 => 100%
       ; 5 => 0 %
       (should-display distance) (let [percentage (* (/ distance 5.0) 100)
+                                      pitch-midi-number (j/get note :midi) ; MIDI pitch number
                                       reverse-percentage (- 100 percentage)
-                                      res (* 500 (/ reverse-percentage 100))
+                                      tile-y (* 500 (/ reverse-percentage 100))
+                                      note-duration-ms (j/get note :duration) ; duration ms
                                       ;adjusted-res (- res 50)
                                       ]
                                   ;(js/console.log "Should display at height:")
                                   ;(js/console.log res)
-                                  (q/rect 50 res 20 25)
+                                  (q/rect (tile-x pitch-midi-number) tile-y tile-width (tile-height note-duration-ms))
                                   )
       ; (- note-touch distance)
       :else nil
@@ -170,8 +182,8 @@
         ]
     ;(q/text (str "Tile position: " (rem frame (q/width))) 140 20)
     ; draw notes
-    (js/console.log "draw notes:")
-    (js/console.log (count notes))
+    ;(js/console.log "draw notes:")
+    ;(js/console.log (count notes))
     (dorun (map (fn [note] (calc note current-time)) notes))
     ;(q/clear)
 
@@ -204,7 +216,9 @@
 (defn start [midi-track]
   (q/sketch
     :host "sketch"
-    :size [500 500]
+    ; piano setup: (21 A0) => (108 C8) = 88 cols.
+    ; tile width = canvas width / 88
+    :size [880 500]
     :setup (setup 30 5000 midi-track)
     :draw draw
     :update update
