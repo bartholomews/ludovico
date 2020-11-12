@@ -35,9 +35,9 @@
 
 (defn ping [freq]
   (bach/connect->
-    (bach/square freq)         ; Try a sawtooth wave.
-    (bach/percussive 0.01 0.4) ; Try varying the attack and decay.
-    (bach/gain 0.1)))          ; Try a bigger gain.
+    (bach/square freq)                                      ; Try a sawtooth wave.
+    (bach/percussive 0.01 0.4)                              ; Try varying the attack and decay.
+    (bach/gain 0.1)))                                       ; Try a bigger gain.
 
 (defn play-midi-note []
   (js/console.log "SOURCE:")
@@ -62,7 +62,9 @@
 (defn parse-midi [midi-js]
   "Return the main track (i.e. at channel 1) of the midi-js"
   (let [tracks (j/get midi-js :tracks)]
-    (j/call tracks :find (fn [track] (= 1 (j/get track :channelNumber))))
+    (js->clj
+      (j/call tracks :find (fn [track] (= 1 (j/get track :channelNumber))))
+      )
     )
   )
 
@@ -71,38 +73,35 @@
   (js/MidiConvert.load (. (getAudioElement) -src)
                        (fn [midi-js] (callback (parse-midi midi-js)))))
 
-(defn with-fixed-delay [f] (js/setTimeout f 5000))
-
-(defn srcF [f el] (f (dommy/attr el "src")))
+;(defn with-fixed-delay [f] (js/setTimeout f 5000))
+;(defn srcF [f el] (f (dommy/attr el "src")))
 
 (defn play [el]
-    (with-fixed-delay #(js/MIDIjs.play (dommy/attr el "src")))
-    ;(js/setTimeout (js/MIDIjs.play (dommy/attr el "src")) 50000)
-    ; #(with-delay (js/MIDIjs.play (dommy/attr el "src")))
-    (with-midi-track (fn [midi-track] (sketch/start midi-track)))
-    (dommy/set-attr! el :status "playing")
-    (swap! play-toggle-btn-label (fn [] "Pause"))
+  ;(with-fixed-delay #(js/MIDIjs.play (dommy/attr el "src")))
+  (with-midi-track (fn [midi-track] (sketch/start midi-track)))
+  (dommy/set-attr! el :status "playing")
+  (swap! play-toggle-btn-label (fn [] "Pause"))
   )
 
 (defn pause [el]
-    (dommy/set-attr! el :status "paused")
-    (srcF js/MIDIjs.pause el)
-    (sketch/toggle)
-    (swap! play-toggle-btn-label (fn [] "Play"))
+  (dommy/set-attr! el :status "paused")
+  ;(srcF js/MIDIjs.pause el)
+  (sketch/toggle)
+  (swap! play-toggle-btn-label (fn [] "Play"))
   )
 
 (defn resume [el]
-    (dommy/set-attr! el :status "playing")
-    (srcF js/MIDIjs.resume el)
-    (sketch/toggle)
-    (swap! play-toggle-btn-label (fn [] "Pause"))
+  (dommy/set-attr! el :status "playing")
+  ;(srcF js/MIDIjs.resume el)
+  (sketch/toggle)
+  (swap! play-toggle-btn-label (fn [] "Pause"))
   )
 
 (defn stop [el]
-    (dommy/set-attr! el :status "stopped")
-    (srcF js/MIDIjs.stop el)
-    (sketch/exit)
-    (swap! play-toggle-btn-label (fn [] "Play"))
+  (dommy/set-attr! el :status "stopped")
+  ;(srcF js/MIDIjs.stop el)
+  (sketch/exit)
+  (swap! play-toggle-btn-label (fn [] "Play"))
   )
 
 (defn on-player-btn-click []
