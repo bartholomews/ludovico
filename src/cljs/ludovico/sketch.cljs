@@ -4,6 +4,7 @@
     [applied-science.js-interop :as j]
     [cljs.core.match :refer-macros [match]]
     [dommy.core :refer-macros [sel1]]
+    [ludovico.player :as player]
     [quil.core :as q :include-macros true]
     [quil.middleware :as m]
     )
@@ -100,7 +101,7 @@
 (defn not-played [note state]
   "Not has not been played yet, should still be evaluated in sketch"
   (let [has-been-played (> (get-elapsed-time state) (j/get note :time))]
-    (if (= has-been-played true) (ludovico.player/play-midi-note (j/get note :midi)))
+    (if (= has-been-played true) (player/play-midi-note (j/get note :midi)))
     (not has-been-played)
     )
   )
