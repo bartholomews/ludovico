@@ -48,41 +48,63 @@
     )
   )
 
-(def split-time [notes]
-  "Take from notes until note is > 10s away from current run time"
-  (take-while notes )
-  )
-
-; Setup - returns initial state
-(defn setup [frame-rate fixed-delay midi-track]
-  (fn []
-    (js/console.log "Starting sketch")
-    (js/console.log midi-track)
-    ;(map (fn [e] (js/console.log e)) ((take 5 (j/get midi-track :notes))))
-    ;(js/console.log (first (take 5 (j/get midi-track :notes))))
-    ; (println "Available fonts:" (q/available-fonts))
-    (q/frame-rate frame-rate)
-    (q/stroke 0xff3090a1)
-    (q/stroke-weight 2)
-    (q/fill 0xff7bcecc)
-    ; TODO: Could take like the first n notes + acc the rest,
-    ;   after each update you take out of played once and take from acc to be n again
-    {:notes      (j/get midi-track :notes)                  ; (take 40 (j/get midi-track :notes))
-     :frame-rate frame-rate
-     :start      (+ (q/millis) fixed-delay)}
-    )
-  )
-
 (defn get-elapsed-time [state]
   (/ (- (q/millis) (get state :start)) 1000)
   )
 
+(defn note-distance [note state]
+  "The distance in millis of note from elapsed time (i.e. how long until it should be played).
+   If negative, it means that the note has already been played."
+  (let [
+        elapsed-time (get-elapsed-time state)
+        note-time (j/get note :time)
+        ]
+    (cond
+      (< elapsed-time 0) (- note-time elapsed-time)
+      :else (- note-time elapsed-time)
+      )
+    )
+  )
+
+(defn display-note-rect [note state]
+  (let [
+        distance (note-distance note state)
+        percentage (* (/ distance 5.0) 100)
+        pitch-midi-number (j/get note :midi)                ; MIDI pitch number
+        reverse-percentage (- 100 percentage)
+        tile-y (* 500 (/ reverse-percentage 100))
+        note-duration-ms (j/get note :duration)             ; duration ms
+        ;adjusted-res (- res 50)
+        ]
+    (js/console.log "Distance:")
+    (js/console.log distance)
+    (js/console.log "Should display at height:")
+    (js/console.log tile-y)
+    (q/rect (tile-x pitch-midi-number) tile-y tile-width (tile-height note-duration-ms))
+    )
+  )
+
+(defn should-display-note [note state]
+  ; notes-to-display (take-while (fn [note] (should-display-note note current-time) notes))
+  "Return true if note rect should be be in canvas, false otherwise.
+   A note which is not already played and less than 5s away from current-time should be displayed in canvas."
+  (let [distance (note-distance note state)] (and (> distance -1) (< distance 5)))
+  )
+
+(defn setup [frame-rate fixed-delay midi-track]
+  (fn []
+    (js/console.log "Starting sketch")
+    (js/console.log midi-track)
+    (q/frame-rate frame-rate)
+    (q/stroke 0xff3090a1)
+    (q/stroke-weight 2)
+    (q/fill 0xff7bcecc)
+    {:notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)}
+    )
+  )
+
 (defn not-played [note state]
   "Not has not been played yet, should still be evaluated in sketch"
-  ;(js/console.log note)
-  ;(js/console.log "current-time:")
-  ;(js/console.log (get-elapsed-time state))
-  ;(js/console.log (not (> (get-elapsed-time state) (get note :time))))
   (let [has-been-played (> (get-elapsed-time state) (j/get note :time))]
     (if (= has-been-played true) (ludovico.player/play-midi-note (j/get note :midi)))
     (not has-been-played)
@@ -90,25 +112,11 @@
   )
 
 (defn update [state]
-  "TODO: remove past notes and append more in acc depending on distance"
-  ;(cond
-  ;  (= (:paused state) true) (q/no-loop)
-  ;  :else (q/start-loop))
-  ;(js/console.log my-state)
-  ;(cond
-  ;  (= my-state true) (js/console.log "TRUE")
-  ;  :else (js/console.log "FALSE"))
   (let [
         ; FIXME: `take-while` they are played
         filtered-notes (filter (fn [note] (not-played note state)) (get state :notes))
         new-state (assoc state :notes filtered-notes)
-        ;new-state {
-        ;           :frame-rate   (get state :frame-rate)
-        ;           :current-time (/ (- (q/millis) (get state :current-time)) 1000)
-        ;           :notes        filtered-notes
-        ;           }
         ]
-    ;(js/console.log "update-state")
     new-state
     )
   )
@@ -121,15 +129,11 @@
 (defn calc [note current-time]
   "The matching y point is at (frame - height) "
   (let [
-        ;canvas-height (q/height)
-        ;note-height 20
         note-time (j/get note :time)
         distance (cond
                    (< current-time 0) (- note-time current-time)
                    :else (- note-time current-time)
                    )
-
-        ;note-touch (- canvas-height note-height)
         ]
 
     ; 0.0123
@@ -156,11 +160,8 @@
                                       note-duration-ms (j/get note :duration) ; duration ms
                                       ;adjusted-res (- res 50)
                                       ]
-                                  ;(js/console.log "Should display at height:")
-                                  ;(js/console.log res)
                                   (q/rect (tile-x pitch-midi-number) tile-y tile-width (tile-height note-duration-ms))
                                   )
-      ; (- note-touch distance)
       :else nil
       )
     ;(js/console.log "~~~~~~~~~~~~~~~~~~~~")
@@ -169,43 +170,22 @@
   )
 
 (defn draw [state]
-  (q/background 255)
-  (q/fill 0)
-  ;(q/text (str "State: " (q/state)) 140 50)
   (let [
-        ;frame (q/frame-count)
-        ;fps (/ (q/frame-count) (get state :frame-rate))
         current-time (get-elapsed-time state)
-        ;current-time (get-elapsed-time state)
         notes (get state :notes)
+        notes-to-display (take-while (fn [note] (should-display-note note state)) notes)
         ]
-    ;(q/text (str "Tile position: " (rem frame (q/width))) 140 20)
-    ; draw notes
-    ;(js/console.log "draw notes:")
-    ;(js/console.log (count notes))
-    (dorun (map (fn [note] (calc note current-time)) notes))
+    (q/background 255)
+    (q/fill 0)
     ;(q/clear)
-
-    ; (calc first-note current-time)
-    ;(js/console.log (get state :notes))
-    ;(map (fn [note] (calc note current-time)) (get state :notes))
-    ;(calc (get (get state :notes) 0) current-time)
-
-    ; every 10 frames change frame rate
-    ; frame rate cycles through [1, 6, 11, 16, 21]
-    ;(when (zero? (rem frame (q/width)))
-    ;  (q/text (str "Frame rate: " (q/target-frame-rate)) 300 20)
-    ;  (q/frame-rate 0)
-    ;  )
-
-    ;(when (q/mouse-pressed? (q/text (str "Frame rate: " (q/target-frame-rate)) 300 40)))
-    ;  (q/frame-rate (inc (* 5 (rem (quot frame 10) 5)))))
-
+    ;(dorun (map (fn [note] (calc note current-time)) notes))
+    ;(js/console.log (count notes-to-display))
+    ;(js/console.log (first notes-to-display))
+    (dorun (map (fn [note] (display-note-rect note state)) notes-to-display))
     ;(q/text (str "Frame rate: " (q/target-frame-rate)) 350 20)
     ;(q/text (str "Frame count: " (/ fps 100)) 350 40)
     ;(q/text (str "Start time: " (get state :start)) 350 40)
     ;(q/text (str "Current time: " current-time) 350 60)
-    ;(q/text (str "Millis: " (q/millis)) 350 80)
     )
   )
 
