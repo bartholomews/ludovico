@@ -12,6 +12,8 @@
     [ludovico.player :as player]
     [reagent.core :as r]))
 
+(def midi-src "midi/toccata_and_fugue_in_d_minor.mid")
+
 ;; -------------------------
 ;; Routes
 
@@ -41,25 +43,24 @@
   (fn []
     [:span.main
      [:h1 "Ludovico"]
-     [:button {:aria-checked "false" :on-click #((player/play-midi-note-f 74 0.1))}
-      [:span "Bach"]]
-     ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     ;[:audio {:src "midi/0004135.mp3"}]
-     [:audio {:id "audio-track" :src "midi/fur_elise.mid" :status "stopped"}]
      [:div
+      [:h5 {:class "section-label"} "Midijs"]
+      [:audio {:id "midijs-audio-track" :src midi-src :status "stopped"}]
+      [:button {:on-click #(player/on-midijs-play-btn-click)} [:span @player/midijs-play-toggle-btn-label]]
+      [:button {:on-click #(player/on-midijs-stop-btn-click)} [:span "Stop"]]
+      ]
+     [:div [:button {:aria-checked "false" :on-click #((player/play-midi-note-f 74 0.1))} [:span "Bach"]]]
+     ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     [:div
+      [:h5 {:class "section-label"} "Quil sketch"]
       ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
-      [:button#play-toggle-btn {:role "switch" :aria-checked "false" :on-click #(player/on-player-btn-click)}
-       [:span @player/play-toggle-btn-label]
-       ]
-
-      [:button {:id       "play-stop-btn" :role "switch" :aria-checked "false"
-                :on-click #(player/stop (player/getAudioElement))
-                }
-       [:span "Stop"]]
+      [:audio {:id "sketch-audio-track" :src midi-src :status "stopped"}]
+      [:button {:on-click #(player/on-sketch-play-btn-click)} [:span @player/sketch-play-toggle-btn-label]]
+      [:button {:on-click #(player/on-sketch-stop-btn-click)} [:span "Stop"]]
       ]
      [:div#sketch]
      [:ul
-      [:li [:a {:href (path-for :songs)} "Songs list"]]
+      ;[:li [:a {:href (path-for :songs)} "Songs list"]]
       ]]
     )
   )

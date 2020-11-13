@@ -24,6 +24,10 @@ h3 {
     font-size: 1.5em
 }
 
+.section-label {
+    margin-bottom: 5px;
+}
+
 a {
     text-decoration: none;
     color: #09f;

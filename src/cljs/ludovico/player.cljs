@@ -12,14 +12,16 @@
 ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
 (defonce context (bach/audio-context))
 
-(def play-toggle-btn-label (r/atom "Play"))
+(def sketch-play-toggle-btn-label (r/atom "Play"))
+(def midijs-play-toggle-btn-label (r/atom "Play"))
 (defn get-sketch-canvas-element [] (sel1 :#sketch))
 
-(defn getAudioElement [] (sel1 :#audio-track))
+(defn getSketchAudioElement [] (sel1 :#sketch-audio-track))
+(defn getMidijsAudioElement [] (sel1 :#midijs-audio-track))
 
 (defn getSource []
   "https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API#Loading_sound"
-  (. context (createMediaElementSource (getAudioElement)))
+  (. context (createMediaElementSource (getSketchAudioElement)))
   )
 
 (defn get-destination []
@@ -113,50 +115,71 @@
 
 (defn with-midi-track [callback]
   "https://www.midijs.net/midijs_api.html"
-  (js/MidiConvert.load (. (getAudioElement) -src)
+  (js/MidiConvert.load (. (getSketchAudioElement) -src)
                        (fn [midi-js] (callback (parse-midi midi-js)))))
 
 ;(defn with-fixed-delay [f] (js/setTimeout f 5000))
-;(defn srcF [f el] (f (dommy/attr el "src")))
+(defn srcF [f el] (f (dommy/attr el "src")))
 
-(defn play [el]
-  ;(with-fixed-delay #(js/MIDIjs.play (dommy/attr el "src")))
-  (with-midi-track (fn [midi-track] (sketch/start midi-track)))
+(defn play [el player-type atom-label]
   (dommy/set-attr! el :status "playing")
-  (swap! play-toggle-btn-label (fn [] "Pause"))
+  (with-midi-track (fn [midi-track]
+                     (cond (= player-type "sketch") (sketch/start midi-track) :else (srcF js/MIDIjs.play el))
+                     ))
+  (swap! atom-label (fn [] "Pause"))
   )
 
-(defn pause [el]
+(defn pause [el player-type atom-label]
   (dommy/set-attr! el :status "paused")
-  ;(srcF js/MIDIjs.pause el)
-  (sketch/toggle)
-  (swap! play-toggle-btn-label (fn [] "Play"))
+  (cond (= player-type "sketch") (sketch/toggle) :else (srcF js/MIDIjs.pause el))
+  (swap! atom-label (fn [] "Resume"))
   )
 
-(defn resume [el]
+(defn resume [el player-type atom-label]
   (dommy/set-attr! el :status "playing")
-  ;(srcF js/MIDIjs.resume el)
-  (sketch/toggle)
-  (swap! play-toggle-btn-label (fn [] "Pause"))
+  (cond (= player-type "sketch") (sketch/toggle) :else (srcF js/MIDIjs.resume el))
+  (swap! atom-label (fn [] "Pause"))
   )
 
-(defn stop [el]
-  (dommy/set-attr! el :status "stopped")
-  ;(srcF js/MIDIjs.stop el)
-  (sketch/exit)
-  (swap! play-toggle-btn-label (fn [] "Play"))
+(defn get-audio-element-data [player-type]
+  (cond
+    (= player-type "sketch") {:element (getSketchAudioElement) :atom-label sketch-play-toggle-btn-label}
+    :else {:element (getMidijsAudioElement) :atom-label midijs-play-toggle-btn-label}
+    )
   )
 
-(defn on-player-btn-click []
+(defn stop [player-type]
+  (let [
+        data (get-audio-element-data player-type)
+        el (get data :element)
+        atom-player-label (get data :atom-label)
+        ]
+    (dommy/set-attr! (get data :element) :status "stopped")
+    (cond (= player-type "sketch") (sketch/exit) :else (srcF js/MIDIjs.stop el))
+    (swap! atom-player-label (fn [] "Play"))
+    )
+  )
+
+(defn on-player-btn-click [player-type]
   "https://www.midijs.net/midijs_api.html"
-  (let [el (getAudioElement)]
+  (let [
+        el-data (get-audio-element-data player-type)
+        el (get el-data :element)
+        atom-player-label (get el-data :atom-label)
+        ]
     (match [(dommy/attr el :status)]
-           ["stopped"] (play el)
-           ["playing"] (pause el)
-           ["paused"] (resume el)
+           ["stopped"] (play el player-type atom-player-label)
+           ["playing"] (pause el player-type atom-player-label)
+           ["paused"] (resume el player-type atom-player-label)
            )
     )
   )
+
+(defn on-sketch-play-btn-click [] (on-player-btn-click "sketch"))
+(defn on-midijs-play-btn-click [] (on-player-btn-click "midijs"))
+
+(defn on-sketch-stop-btn-click [] (stop "sketch"))
+(defn on-midijs-stop-btn-click [] (stop "midijs"))
 
 (defn on-midi-loaded []
   "https://github.com/prasincs/web-audio-project/blob/master/src-cljs/web_audio_project/client.cljs"
