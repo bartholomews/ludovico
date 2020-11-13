@@ -97,12 +97,16 @@
     )
   )
 
+(defn has-been-played [note state]
+  (> (get-elapsed-time state) (j/get note :time))
+  )
+
 (defn update [state]
   (let [
-        ; FIXME: `take-while` they are played
-        filtered-notes (filter (fn [note] (not-played note state)) (get state :notes))
-        new-state (assoc state :notes filtered-notes)
+        played-not-played (split-with (fn [note] (has-been-played note state)) (get state :notes))
+        new-state (assoc state :notes (last played-not-played))
         ]
+    (dorun (map (fn [note] (j/call note :synthF)) (first played-not-played)))
     new-state
     )
   )
