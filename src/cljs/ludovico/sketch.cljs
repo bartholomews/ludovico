@@ -5,7 +5,6 @@
     [cljs.core.match :refer-macros [match]]
     [dommy.core :refer-macros [sel1]]
     [quil.core :as q :include-macros true]
-    [quil.middleware :as m]
     )
   )
 
@@ -48,15 +47,15 @@
     )
   )
 
-(defn get-elapsed-time [state]
-  (/ (- (q/millis) (get state :start)) 1000)
+(defn get-elapsed-time []
+  (/ (- (q/millis) (q/state :start)) 1000)
   )
 
-(defn note-distance [note state]
+(defn note-distance [note]
   "The distance in millis of note from elapsed time (i.e. how long until it should be played).
    If negative, it means that the note has already been played."
   (let [
-        elapsed-time (get-elapsed-time state)
+        elapsed-time (get-elapsed-time)
         note-time (j/get note :time)
         ]
     (cond
@@ -66,9 +65,11 @@
     )
   )
 
-(defn display-note-rect [note state]
+(defn play-midi-note [note] (j/call note :synthF))
+
+(defn display-note-rect [note]
   (let [
-        distance (note-distance note state)
+        distance (note-distance note)
         percentage (* (/ distance 5.0) 100)
         pitch-midi-number (j/get note :midi)
         reverse-percentage (- 100 percentage)
@@ -79,10 +80,10 @@
     )
   )
 
-(defn should-display-note [note state]
+(defn should-display-note [note]
   "Return true if note rect should be be in canvas, false otherwise.
    A note which is not already played and less than 5s away from current-time should be displayed in canvas."
-  (let [distance (note-distance note state)] (and (> distance -1) (< distance 5)))
+  (let [distance (note-distance note)] (and (> distance -1) (< distance 5)))
   )
 
 (defn setup [frame-rate fixed-delay midi-track]
@@ -93,33 +94,26 @@
     (q/stroke 0xff3090a1)
     (q/stroke-weight 2)
     (q/fill 0xff7bcecc)
-    {:notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)}
-    )
+    (q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
   )
 
-(defn has-been-played [note state]
-  (> (get-elapsed-time state) (j/get note :time))
+(defn has-been-played [elapsed-time note]
+  (> elapsed-time (j/get note :time))
   )
 
-(defn update [state]
+(defn draw []
   (let [
-        played-not-played (split-with (fn [note] (has-been-played note state)) (get state :notes))
-        new-state (assoc state :notes (last played-not-played))
-        ]
-    (dorun (map (fn [note] (j/call note :synthF)) (first played-not-played)))
-    new-state
-    )
-  )
-
-(defn draw [state]
-  (let [
-        notes (get state :notes)
-        notes-to-display (take-while (fn [note] (should-display-note note state)) notes)
+        notes (q/state :notes)
+        elapsed-time (get-elapsed-time)
+        notes-to-display (take-while (fn [note] (should-display-note note)) notes)
+        played-not-played (split-with (fn [note] (has-been-played elapsed-time note)) notes)
         ]
     (q/background 255)
     (q/fill 0)
     ;(q/clear)
-    (dorun (map (fn [note] (display-note-rect note state)) notes-to-display))
+    (dorun (map display-note-rect notes-to-display))
+    (dorun (map play-midi-note (first played-not-played)))
+    (swap! (q/state-atom) assoc-in [:notes] (last played-not-played))
     ;(q/text (str "Frame rate: " (q/target-frame-rate)) 350 20)
     ;(q/text (str "Frame count: " (/ fps 100)) 350 40)
     ;(q/text (str "Start time: " (get state :start)) 350 40)
@@ -133,12 +127,8 @@
 (defn start [midi-track]
   (q/sketch
     :host "sketch"
-    ; piano setup: (21 A0) => (108 C8) = 88 cols.
-    ; tile width = canvas width / 88
     :size [880 500]
-    :setup (setup 120 5000 midi-track)
+    :setup (setup 32 5000 midi-track)
     :draw draw
-    :update update
-    :middleware [m/fun-mode]
     )
   )
