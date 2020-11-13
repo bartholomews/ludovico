@@ -4,7 +4,6 @@
     [applied-science.js-interop :as j]
     [cljs.core.match :refer-macros [match]]
     [dommy.core :refer-macros [sel1]]
-    [ludovico.player :as player]
     [quil.core :as q :include-macros true]
     [quil.middleware :as m]
     )
@@ -98,14 +97,6 @@
     )
   )
 
-(defn not-played [note state]
-  "Not has not been played yet, should still be evaluated in sketch"
-  (let [has-been-played (> (get-elapsed-time state) (j/get note :time))]
-    (if (= has-been-played true) (player/play-midi-note (j/get note :midi)))
-    (not has-been-played)
-    )
-  )
-
 (defn update [state]
   (let [
         ; FIXME: `take-while` they are played
@@ -141,7 +132,7 @@
     ; piano setup: (21 A0) => (108 C8) = 88 cols.
     ; tile width = canvas width / 88
     :size [880 500]
-    :setup (setup 240 5000 midi-track)
+    :setup (setup 120 5000 midi-track)
     :draw draw
     :update update
     :middleware [m/fun-mode]

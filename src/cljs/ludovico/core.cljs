@@ -1,7 +1,7 @@
 (ns ludovico.core
   (:require
     [cljs.core.match :refer-macros [match]]
-    [dommy.core :as dommy :refer-macros [sel sel1]]
+    [dommy.core :refer-macros [sel sel1]]
     [reagent.core :as reagent :refer [atom]]
     [reagent.dom :as rdom]
     [reagent.session :as session]
@@ -41,7 +41,7 @@
   (fn []
     [:span.main
      [:h1 "Ludovico"]
-     [:button {:aria-checked "false" :on-click #(player/play-midi-note 74)}
+     [:button {:aria-checked "false" :on-click #((player/play-midi-note-f 74 0.1))}
       [:span "Bach"]]
      ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      ;[:audio {:src "midi/0004135.mp3"}]

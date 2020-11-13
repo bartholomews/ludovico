@@ -62,29 +62,27 @@
 ;    (bach/gain 0.1))
 ;  )
 
-; https://medium.com/swinginc/playing-with-midi-in-javascript-b6999f2913c3
-; f = (2^(m-69)/12) * 440 Hz
 (defn to-frequency [midi-number]
+  "Convert a midi number to frequency. See https://medium.com/swinginc/playing-with-midi-in-javascript-b6999f2913c3"
+  "f = (2^(m-69)/12) * 440 Hz"
   (let [exp (/ (- midi-number 69) 12)] (* (Math/pow 2 exp) 440))
   )
 
-(defn ping [midi-number]
+(defn ping [frequency]
   (bach/connect->
-    (bach/triangle (to-frequency midi-number))
+    (bach/triangle frequency)
     (bach/percussive 0.01 0.4)
     (bach/gain 0.1))
   )
 
-(defn play-midi-note [midi-number]
-  ;(js/console.log "SOURCE:")
-  ;(js/console.log (getSource))
-  ;(js/console.log "DESTINATION:")
-  ;(js/console.log (destination))
-  ;(js/console.log "CONNECTION:")
-  ;(js/console.log (getConnection))
-  (-> (ping midi-number)
-      (bach/connect-> bach/destination)
-      (bach/run-with context (bach/current-time context) 1.0)))
+(defn play! [synth duration]
+  (bach/run-with synth context (bach/current-time context) duration)
+  )
+
+(defn play-midi-note-f [midi-number duration]
+  (let [synth (-> (ping (to-frequency midi-number)) (bach/connect-> bach/destination))]
+    (fn [] (play! synth duration)))
+  )
 
 ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API#Controlling_sound
 ;(defn web-api-handler [evt]
@@ -95,12 +93,21 @@
 ;  (. (getAudioElement) play)
 ;  )
 
+(defn addSynthF [note]
+  (let [
+        midi-note (j/get note :midi)
+        duration (j/get note :duration)
+        ]
+    (j/assoc! note :synthF (play-midi-note-f midi-note duration))
+    )
+  )
+
 (defn parse-midi [midi-js]
   "Return the main track (i.e. at channel 1) of the midi-js"
-  (let [tracks (j/get midi-js :tracks)]
-    (js->clj
-      (j/call tracks :find (fn [track] (= 1 (j/get track :channelNumber))))
-      )
+  (->
+    (j/get midi-js :tracks)
+    (j/call :find (fn [track] (= 1 (j/get track :channelNumber))))
+    (j/update-in! [:notes] (fn [notes] (j/call notes :map addSynthF)))
     )
   )
 
