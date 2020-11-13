@@ -1,9 +1,6 @@
 (defproject ludovico "0.1.0-SNAPSHOT"
   :description "Ludovico"
   :url "https://github.com/bartholomews/ludovico"
-  :license {:name "GNU General Public License version 3"
-            :url  "http://opensource.org/licenses/GPL-3.0"}
-
   :dependencies [[org.clojure/clojure "1.10.1"]             ; https://github.com/clojure/clojure
                  [org.clojure/clojurescript "1.10.773"      ; https://github.com/clojure/clojurescript
                   :scope "provided"]
