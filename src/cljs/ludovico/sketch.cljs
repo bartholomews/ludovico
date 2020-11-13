@@ -76,6 +76,9 @@
         tile-y (* 500 (/ reverse-percentage 100))
         note-duration-ms (j/get note :duration)
         ]
+    ; use RGB with 42 max value and draw 75% transparent blue
+    (q/color-mode :rgb 40)
+    (q/fill 0 0 40 30)
     (q/rect (tile-x pitch-midi-number) tile-y tile-width (tile-height note-duration-ms))
     )
   )
@@ -108,11 +111,11 @@
         notes-to-display (take-while (fn [note] (should-display-note note)) notes)
         played-not-played (split-with (fn [note] (has-been-played elapsed-time note)) notes)
         ]
-    (q/background 255)
+    (q/background 0 0 0)
     (q/fill 0)
     ;(q/clear)
-    (dorun (map display-note-rect notes-to-display))
     (dorun (map play-midi-note (first played-not-played)))
+    (dorun (map display-note-rect notes-to-display))
     (swap! (q/state-atom) assoc-in [:notes] (last played-not-played))
     ;(q/text (str "Frame rate: " (q/target-frame-rate)) 350 20)
     ;(q/text (str "Frame count: " (/ fps 100)) 350 40)
