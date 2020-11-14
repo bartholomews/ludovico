@@ -12,6 +12,7 @@
     [ludovico.player :as player]
     [reagent.core :as r]))
 
+;(def midi-src "midi/fur_elise.mid")
 (def midi-src "midi/toccata_and_fugue_in_d_minor.mid")
 
 ;; -------------------------

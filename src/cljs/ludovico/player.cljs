@@ -106,24 +106,38 @@
 
 (defn parse-midi [midi-js]
   "Return the main track (i.e. at channel 1) of the midi-js"
+  (js/console.log "parse-midi")
+  (js/console.log midi-js)
   (->
     (j/get midi-js :tracks)
-    (j/call :find (fn [track] (= 1 (j/get track :channelNumber))))
+    ; TODO: User should pick channel from available (i.e. with notes)
+    (j/call :find (fn [track] (= 0 (j/get track :channel))))
     (j/update-in! [:notes] (fn [notes] (j/call notes :map addSynthF)))
     )
   )
 
 (defn with-midi-track [callback]
+  "https://github.com/Tonejs/Midi"
+  (.then (js/Promise.resolve (js/Midi.fromUrl (. (getSketchAudioElement) -src)))
+         (fn [midi-js] (callback (parse-midi midi-js))))
+  )
+  ;(js/Midi.fromUrl (. (getSketchAudioElement) -src)
+  ;                     (fn [midi-js] (callback (parse-midi midi-js)))))
+
+; https://www.npmjs.com/package/midiconvert
+(defn with-midi-track-legacy [callback]
   "https://www.midijs.net/midijs_api.html"
   (js/MidiConvert.load (. (getSketchAudioElement) -src)
                        (fn [midi-js] (callback (parse-midi midi-js)))))
 
-;(defn with-fixed-delay [f] (js/setTimeout f 5000))
+(defn with-fixed-delay [f] (js/setTimeout f 4000))
 (defn srcF [f el] (f (dommy/attr el "src")))
 
 (defn play [el player-type atom-label]
   (dommy/set-attr! el :status "playing")
   (with-midi-track (fn [midi-track]
+                     ;(sketch/start midi-track)
+                     ;(with-fixed-delay #(js/MIDIjs.play (dommy/attr el "src")))
                      (cond (= player-type "sketch") (sketch/start midi-track) :else (srcF js/MIDIjs.play el))
                      ))
   (swap! atom-label (fn [] "Pause"))
@@ -155,6 +169,8 @@
         atom-player-label (get data :atom-label)
         ]
     (dommy/set-attr! (get data :element) :status "stopped")
+    ;(sketch/exit)
+    ;(srcF js/MIDIjs.stop el)
     (cond (= player-type "sketch") (sketch/exit) :else (srcF js/MIDIjs.stop el))
     (swap! atom-player-label (fn [] "Play"))
     )
@@ -185,6 +201,5 @@
   "https://github.com/prasincs/web-audio-project/blob/master/src-cljs/web_audio_project/client.cljs"
   (js/console.log "on_midi_loaded")
   ; https://www.midijs.net/midijs_api.html
-  (js/console.log (js/MIDIjs.get_audio_status))
   (with-midi-track js/console.log)
   )
