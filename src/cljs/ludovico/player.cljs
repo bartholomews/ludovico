@@ -110,7 +110,7 @@
   (js/console.log midi-js)
   (->
     (j/get midi-js :tracks)
-    ; TODO: User should pick channel from available (i.e. with notes)
+    ; TODO: User should pick channel from available (i.e. with notes / instrument number etc)
     (j/call :find (fn [track] (= 0 (j/get track :channel))))
     (j/update-in! [:notes] (fn [notes] (j/call notes :map addSynthF)))
     )
