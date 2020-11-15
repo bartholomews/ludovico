@@ -89,15 +89,16 @@
   (let [distance (note-distance note)] (and (> distance -1) (< distance 5)))
   )
 
-(defn setup [frame-rate fixed-delay midi-track]
+(defn setup [frame-rate fixed-delay midi-track-notes]
   (fn []
     (js/console.log "Starting sketch")
-    (js/console.log midi-track)
+    (js/console.log midi-track-notes)
     (q/frame-rate frame-rate)
     (q/stroke 0xff3090a1)
     (q/stroke-weight 2)
     (q/fill 0xff7bcecc)
-    (q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
+    ;(q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
+    (q/set-state! :notes midi-track-notes :start (+ (q/millis) fixed-delay)))
   )
 
 (defn has-been-played [elapsed-time note]

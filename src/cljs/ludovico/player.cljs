@@ -7,7 +7,8 @@
     [reagent.core :as r]
     ))
 
-(def midi-player-atom (r/atom {:next "Play" :midi-src ""}))
+; TODO do a :src :track object with :notes inside
+(def midi-player-atom (r/atom {:next "Play" :midi-src "" :notes nil}))
 
 (defn update-player-next [state] (swap-vals! midi-player-atom assoc :next state))
 
@@ -30,16 +31,16 @@
     ; TODO: User should pick channel from available (i.e. with notes / instrument number etc)
     ;(j/call :find (fn [track] (= 1 (j/get track :channel))))
     (j/call :map (fn [track] (j/get track :notes)))
-    (merge-notes #js [])
-    ;(j/update-in! [:notes] addSynthAndSort)
-    ;(j/update-in! [:notes] (fn [notes] (j/call notes :map addSynthF)))
-    ;(j/update-in! [:notes] (fn [notes] (j/call notes :sort note-duration)))
-    )
+    (j/call :filter (fn [tracks] (not (empty? tracks)))))
+  ;(merge-notes #js [])
+  ;(j/update-in! [:notes] addSynthAndSort)
+  ;(j/update-in! [:notes] (fn [notes] (j/call notes :map addSynthF)))
+  ;(j/update-in! [:notes] (fn [notes] (j/call notes :sort note-duration)))
   )
 
-(defn with-midi-track [callback]
+(defn with-midi-track [midi-src callback]
   "https://github.com/Tonejs/Midi"
-  (.then (js/Promise.resolve (js/Midi.fromUrl (. (get-audio-element) -src)))
+  (.then (js/Promise.resolve (js/Midi.fromUrl midi-src))
          (fn [midi-js] (callback (parse-midi midi-js))))
   )
 
@@ -47,13 +48,9 @@
 (defn srcF [f el] (f (dommy/attr el "src")))
 
 (defn play [el]
-  (with-midi-track (fn [midi-track]
-                     ;(sketch/start midi-track)
-                     ;(with-fixed-delay #(js/MIDIjs.play (dommy/attr el "src")))
-                     (with-fixed-delay #(srcF js/MIDIjs.play el))
-                     (sketch/start midi-track)
-                     (update-player-next "Pause")
-                     ))
+  (with-fixed-delay #(srcF js/MIDIjs.play el))
+  (sketch/start (first (get @midi-player-atom :notes)))     ; FIXME: user-selectable notes (rename to tracks)
+  (update-player-next "Pause")
   )
 
 (defn pause [el]
@@ -87,9 +84,12 @@
     (srcF js/MIDIjs.stop el)
     (update-player-next "Play")))
 
-(defn on-midi-loaded []
+(defn on-midi-loaded [midi-src]
   "https://github.com/prasincs/web-audio-project/blob/master/src-cljs/web_audio_project/client.cljs"
   ;(js/console.log "on_midi_loaded")
   ; https://www.midijs.net/midijs_api.html
-  ;(with-midi-track js/console.log)
+  (with-midi-track midi-src (fn [midi-notes]
+                              (swap-vals! midi-player-atom assoc :midi-src midi-src :notes midi-notes)
+                              (js/console.log (get @midi-player-atom :notes))
+                              ))
   )

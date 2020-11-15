@@ -47,7 +47,7 @@
 (.addEventListener
   js/window
   "DOMContentLoaded"
-  (fn [] (js/console.log @player/midi-player-atom))
+  (fn [] (js/console.log "Page loaded."))
   )
 
 (defn on-midi-file-selected [input]
@@ -56,7 +56,7 @@
      files (j/get-in input [:target :files])
      file (first files)
      ]
-    (j/assoc! fr :onload #(swap-vals! player/midi-player-atom assoc :midi-src (j/get fr :result)))
+    (j/assoc! fr :onload (fn [e] (player/on-midi-loaded (j/get-in e [:target :result]))))
     (j/call fr :readAsDataURL file)
     )
   )
