@@ -169,14 +169,15 @@
                  )
   )
 
-(defn setup [frame-rate fixed-delay midi-track-notes]
+(defn setup [frame-rate fixed-delay midi-track]
   (fn []
     (js/console.log "Starting sketch")
-    ;(js/console.log midi-track-notes)
+    (js/console.log midi-track)
     (q/frame-rate frame-rate)
     ;(j/assoc! js/MIDIjs :player_callback player-callback)
     ;(q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
-    (q/set-state! :player-time nil :notes midi-track-notes :start (+ (q/millis) fixed-delay)))
+    ;    (q/set-state! :player-time nil :notes midi-track-notes :start (+ (q/millis) fixed-delay)))
+    (q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
   )
 
 (defn is-not-future-note [note]

@@ -29,12 +29,13 @@
   (let [exp (/ (- midi-number 69) 12)] (* (Math/pow 2 exp) 440))
   )
 
-(defn play! [synth duration]
-  (bach/run-with synth context (bach/current-time context) duration)
+(defn play! [instrument midi-number duration]
+  ;(bach/run-with synth context (bach/current-time context) duration)
+  (j/call instrument :play midi-number (j/get context :currentTime) {:duration duration})
   )
 
 (defn note-duration [note-1 note-2]
-  (< (j/get note-1 :duration)(j/get note-2 :duration))
+  (< (j/get note-1 :duration) (j/get note-2 :duration))
   )
 
 (defn ping [frequency]
@@ -44,9 +45,19 @@
     (bach/gain 0.1))
   )
 
+; https://github.com/danigb/soundfont-player
+(defn play-soundfont []
+  (js/console.log "TODO")
+  ;(.then (js/Promise.resolve (j/call js/Soundfont :instrument context "marimba"))
+  ;       (fn [marimba] (j/call marimba :play "C4")))
+  )
+
 (defn play-midi-note-f [midi-number duration]
-  (let [synth (-> (ping (to-frequency midi-number)) (bach/connect-> bach/destination))]
-    (fn [] (play! synth duration)))
+  ;(let [synth (-> (ping (to-frequency midi-number)) (bach/connect-> bach/destination))]
+  ;  (fn [] (play! synth duration)))
+  (let [instrument (get @player/midi-player-atom :instrument)]
+    (fn [] (play! instrument midi-number duration))
+    )
   )
 
 ;(defn getConnection []
