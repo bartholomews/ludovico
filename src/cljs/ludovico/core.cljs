@@ -60,19 +60,15 @@
     )
   )
 
-(defn load-midi-menu-items []
+(defn on-midi-file-selected [input]
   (let
-    [load "TODO: load"]
-    (
-     [menu-item {:value "10"} "Ten"]
-     [menu-item {:value "20"} "Twenty"]
-     [menu-item {:value "30"} "Thirty"])
+    [fr (js/FileReader.)
+     files (j/get-in input [:target :files])
+     file (first files)
+     ]
+    (j/assoc! fr :onload #(swap-vals! player-atom assoc :midi-src (j/get fr :result)))
+    (j/call fr :readAsDataURL file)
     )
-  )
-
-(defn on-midi-file-selected [file]
-  (js/console.log file)
-  (js/console.log (j/get file :files))
   )
 
 (defn home-page []
@@ -82,15 +78,8 @@
      ; https://material-ui.com/components/selects/
      [:div
       [:h5 {:class "section-label"} "Load Midi"]
+      [:audio#midi-track {:src (get @player-atom :midi-src) :status "stopped"}]
       [:input {:type "file" :on-change on-midi-file-selected}]
-
-      [form-control {:class "midi-select-form"}
-       [select {:value (get @player-atom :midi-src) :display-empty true :class "select-empty" :on-change on-midi-change}
-        [menu-item {:value "" :disabled true} "Select MIDI"]
-        (load-midi-menu-items)
-        ;[form-helper-text "Placeholder"]
-        ]
-       ]
       ]
      [:div
       [:h5 {:class "section-label"} "Midijs"]

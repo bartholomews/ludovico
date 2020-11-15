@@ -16,12 +16,11 @@
 (def midijs-play-toggle-btn-label (r/atom "Play"))
 (defn get-sketch-canvas-element [] (sel1 :#sketch))
 
-(defn getSketchAudioElement [] (sel1 :#sketch-audio-track))
-(defn getMidijsAudioElement [] (sel1 :#midijs-audio-track))
+(defn getAudioElement [] (sel1 :#midi-track))
 
 (defn getSource []
   "https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API#Loading_sound"
-  (. context (createMediaElementSource (getSketchAudioElement)))
+  (. context (createMediaElementSource (getAudioElement)))
   )
 
 (defn get-destination []
@@ -143,7 +142,7 @@
 
 (defn with-midi-track [callback]
   "https://github.com/Tonejs/Midi"
-  (.then (js/Promise.resolve (js/Midi.fromUrl (. (getSketchAudioElement) -src)))
+  (.then (js/Promise.resolve (js/Midi.fromUrl (. (getAudioElement) -src)))
          (fn [midi-js] (callback (parse-midi midi-js))))
   )
   ;(js/Midi.fromUrl (. (getSketchAudioElement) -src)
@@ -152,7 +151,7 @@
 ; https://www.npmjs.com/package/midiconvert
 (defn with-midi-track-legacy [callback]
   "https://www.midijs.net/midijs_api.html"
-  (js/MidiConvert.load (. (getSketchAudioElement) -src)
+  (js/MidiConvert.load (. (getAudioElement) -src)
                        (fn [midi-js] (callback (parse-midi midi-js)))))
 
 (defn with-fixed-delay [f] (js/setTimeout f 4000))
@@ -182,8 +181,8 @@
 
 (defn get-audio-element-data [player-type]
   (cond
-    (= player-type "sketch") {:element (getSketchAudioElement) :atom-label sketch-play-toggle-btn-label}
-    :else {:element (getMidijsAudioElement) :atom-label midijs-play-toggle-btn-label}
+    (= player-type "sketch") {:element (getAudioElement) :atom-label sketch-play-toggle-btn-label}
+    :else {:element (getAudioElement) :atom-label midijs-play-toggle-btn-label}
     )
   )
 
@@ -224,7 +223,7 @@
 
 (defn on-midi-loaded []
   "https://github.com/prasincs/web-audio-project/blob/master/src-cljs/web_audio_project/client.cljs"
-  (js/console.log "on_midi_loaded")
+  ;(js/console.log "on_midi_loaded")
   ; https://www.midijs.net/midijs_api.html
-  (with-midi-track js/console.log)
+  ;(with-midi-track js/console.log)
   )
