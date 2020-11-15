@@ -10,7 +10,7 @@
     [accountant.core :as accountant]
     [goog.dom :as gdom]
     [ludovico.player :as player]
-    [reagent.core :as r]
+    [ludovico.synth :as synth]
     [reagent-material-ui.core.input-label :refer [input-label]]
     [reagent-material-ui.core.menu-item :refer [menu-item]]
     [reagent-material-ui.core.form-control :refer [form-control]]
@@ -47,17 +47,7 @@
 (.addEventListener
   js/window
   "DOMContentLoaded"
-  (fn [] (player/on-midi-loaded))
-  )
-
-(def player-atom (r/atom {:midi-src ""}))
-
-(defn on-midi-change [e]
-  (let
-    [new-midi-src (j/get-in e [:target :value])]
-    (js/console.log (j/get-in e [:target :value]))
-    (swap-vals! player-atom assoc :midi-src new-midi-src)
-    )
+  (fn [] (js/console.log @player/midi-player-atom))
   )
 
 (defn on-midi-file-selected [input]
@@ -66,7 +56,7 @@
      files (j/get-in input [:target :files])
      file (first files)
      ]
-    (j/assoc! fr :onload #(swap-vals! player-atom assoc :midi-src (j/get fr :result)))
+    (j/assoc! fr :onload #(swap-vals! player/midi-player-atom assoc :midi-src (j/get fr :result)))
     (j/call fr :readAsDataURL file)
     )
   )
@@ -78,28 +68,19 @@
      ; https://material-ui.com/components/selects/
      [:div
       [:h5 {:class "section-label"} "Load Midi"]
-      [:audio#midi-track {:src (get @player-atom :midi-src) :status "stopped"}]
-      [:input {:type "file" :on-change on-midi-file-selected}]
-      ]
-     [:div
-      [:h5 {:class "section-label"} "Midijs"]
-      [:audio {:id "midijs-audio-track" :src midi-src :status "stopped"}]
-      [:button {:on-click #(player/on-midijs-play-btn-click)} [:span @player/midijs-play-toggle-btn-label]]
-      [:button {:on-click #(player/on-midijs-stop-btn-click)} [:span "Stop"]]
-      ]
-     [:div [:button {:aria-checked "false" :on-click #((player/play-midi-note-f 74 0.1))} [:span "Bach"]]]
-     ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     [:div
-      [:h5 {:class "section-label"} "Quil sketch"]
       ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
-      [:audio {:id "sketch-audio-track" :src midi-src :status "stopped"}]
-      [:button {:on-click #(player/on-sketch-play-btn-click)} [:span @player/sketch-play-toggle-btn-label]]
-      [:button {:on-click #(player/on-sketch-stop-btn-click)} [:span "Stop"]]
+      [:audio#midi-track {:src (get @player/midi-player-atom :midi-src) :status "stopped"}]
+      [:input {:type "file" :on-change on-midi-file-selected}]
+      [:div
+       [:button {:on-click #(player/on-play-btn-click)} [:span (get @player/midi-player-atom :next)]]
+       [:button {:on-click #(player/on-stop-btn-click)} [:span "Stop"]]
+       ]
       ]
+     [:div [:button {:aria-checked "false" :on-click #((synth/play-midi-note-f 74 0.1))} [:span "Ping"]]]
+     ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      [:div#sketch]
-     [:ul
-      ;[:li [:a {:href (path-for :songs)} "Songs list"]]
-      ]]
+     ;[:ul [:li [:a {:href (path-for :songs)} "Songs list"]]]
+     ]
     )
   )
 

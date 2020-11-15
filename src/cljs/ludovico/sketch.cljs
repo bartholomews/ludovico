@@ -114,7 +114,7 @@
     (q/background 0 0 0)
     (q/fill 0)
     ;(q/clear)
-    (dorun (map play-midi-note (first played-not-played)))
+    ;(dorun (map play-midi-note (first played-not-played)))
     (dorun (map display-note-rect notes-to-display))
     (swap! (q/state-atom) assoc-in [:notes] (last played-not-played))
     ;(q/text (str "Frame rate: " (q/target-frame-rate)) 350 20)
