@@ -76,7 +76,8 @@
        [:button {:on-click #(player/on-stop-btn-click)} [:span "Stop"]]
        ]
       ]
-     [:div [:button {:aria-checked "false" :on-click #((synth/play-midi-note-f 74 0.1))} [:span "Ping"]]]
+     [:div [:button {:aria-checked "false" :on-click #((synth/play-midi-note-f 74 0.1))} [:span "Ping cljs-bach"]]]
+     [:div [:button {:aria-checked "false" :on-click #((synth/play-soundfont))} [:span "Ping soundfont-player"]]]
      ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      [:div#sketch]
      ;[:ul [:li [:a {:href (path-for :songs)} "Songs list"]]]

@@ -23,7 +23,8 @@
   (html5
    (head)
    [:body {:class "body-container"}
-    mount-target (include-js "/js/app.js")
+    ; https://github.com/danigb/soundfont-player
+    mount-target (include-js "/js/app.js" "/js/soundfont-player.js")
     ; FIXME: Try to use a clojure-only thing like Leipzig
     ; https://github.com/Tonejs/Midi
     [:script {:type "text/javascript" :src (hiccup.util/to-uri "https://unpkg.com/@tonejs/midi")}]

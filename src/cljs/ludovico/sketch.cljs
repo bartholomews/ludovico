@@ -48,13 +48,14 @@
   )
 
 (defn get-elapsed-time []
-  (let
-    [time (q/state :time)]
-    (cond
-      (nil? time) (/ (- (q/millis) (q/state :start)) 1000)
-      :else time
-      )
-    )
+  (/ (- (q/millis) (q/state :start)) 1000)
+  ;(let
+  ;  [time (q/state :time)]
+  ;  (cond
+  ;    (nil? time) (/ (- (q/millis) (q/state :start)) 1000)
+  ;    :else time
+  ;    )
+  ;  )
   )
 
 (defn note-distance [note]
@@ -101,17 +102,17 @@
                  )
   )
 
-(defn setup [frame-rate fixed-delay midi-track-notes]
+(defn setup [frame-rate fixed-delay midi-track]
   (fn []
     (js/console.log "Starting sketch")
-    (js/console.log midi-track-notes)
+    (js/console.log midi-track)
     (q/frame-rate frame-rate)
     (q/stroke 0xff3090a1)
     (q/stroke-weight 2)
     (q/fill 0xff7bcecc)
     (j/assoc! js/MIDIjs :player_callback player-callback)
     ;(q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
-    (q/set-state! :time nil :notes midi-track-notes :start (+ (q/millis) fixed-delay)))
+    (q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
   )
 
 (defn has-been-played [elapsed-time note]
@@ -128,7 +129,7 @@
     (q/background 0 0 0)
     (q/fill 0)
     ;(q/clear)
-    ;(dorun (map play-midi-note (first played-not-played)))
+    (dorun (map play-midi-note (first played-not-played)))
     (dorun (map display-note-rect notes-to-display))
     ;(swap! (q/state-atom) assoc-in [:time] evt)
     (swap! (q/state-atom) assoc-in [:notes] (last played-not-played))
