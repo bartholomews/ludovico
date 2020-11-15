@@ -48,6 +48,9 @@
 (defn srcF [f el] (f (dommy/attr el "src")))
 
 (defn play [el]
+  (js/console.log (j/call js/MIDIjs :get_audio_status))
+  ;(j/assoc! js/MIDIjs :player_callback (fn [e] (js/console.log e)))
+  ; https://www.midijs.net/midijs_api.html
   (with-fixed-delay #(srcF js/MIDIjs.play el))
   (sketch/start (first (get @midi-player-atom :notes)))     ; FIXME: user-selectable notes (rename to tracks)
   (update-player-next "Pause")
@@ -86,8 +89,6 @@
 
 (defn on-midi-loaded [midi-src]
   "https://github.com/prasincs/web-audio-project/blob/master/src-cljs/web_audio_project/client.cljs"
-  ;(js/console.log "on_midi_loaded")
-  ; https://www.midijs.net/midijs_api.html
   (with-midi-track midi-src (fn [midi-notes]
                               (swap-vals! midi-player-atom assoc :midi-src midi-src :notes midi-notes)
                               (js/console.log (get @midi-player-atom :notes))
