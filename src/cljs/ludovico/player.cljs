@@ -104,6 +104,27 @@
     )
   )
 
+(defn merge-notes [arrays acc]
+  (cond
+    (empty? arrays) #js {:notes acc}
+    :else (merge-notes (rest arrays) (j/call acc :concat (first arrays)))
+    )
+  )
+
+(defn note-duration [note-1 note-2]
+  (< (j/get note-1 :duration)(j/get note-2 :duration))
+  )
+
+(defn addSynthAndSort [notes]
+  (js/console.log "add-s-and-s")
+  (js/console.log notes)
+  ;(let
+  ;  [sorted-notes (j/call sort-by note-duration notes)]
+  ;  (j/call sorted-notes :map addSynthF)
+  ;  )
+  (j/call :sort notes)
+  )
+
 (defn parse-midi [midi-js]
   "Return the main track (i.e. at channel 1) of the midi-js"
   (js/console.log "parse-midi")
@@ -111,9 +132,13 @@
   (->
     (j/get midi-js :tracks)
     ; TODO: User should pick channel from available (i.e. with notes / instrument number etc)
-    (j/call :find (fn [track] (= 0 (j/get track :channel))))
+    ;(j/call :find (fn [track] (= 1 (j/get track :channel))))
+    (j/call :map (fn [track] (j/get track :notes)))
+    (merge-notes #js [])
+    ;(j/update-in! [:notes] addSynthAndSort)
     (j/update-in! [:notes] (fn [notes] (j/call notes :map addSynthF)))
-    )
+    ;(j/update-in! [:notes] (fn [notes] (j/call notes :sort note-duration)))
+  )
   )
 
 (defn with-midi-track [callback]

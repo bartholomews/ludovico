@@ -10,12 +10,20 @@
     [accountant.core :as accountant]
     [goog.dom :as gdom]
     [ludovico.player :as player]
-    [reagent.core :as r]))
+    [reagent.core :as r]
+    [reagent-material-ui.core.input-label :refer [input-label]]
+    [reagent-material-ui.core.menu-item :refer [menu-item]]
+    [reagent-material-ui.core.form-control :refer [form-control]]
+    [reagent-material-ui.core.select :refer [select]]
+    [applied-science.js-interop :as j]
+    )
+  )
 
 ;(def midi-src "midi/fur_elise.mid")
-;(def midi-src "midi/toccata_and_fugue_in_d_minor.mid")
+(def midi-src "midi/toccata_and_fugue_in_d_minor.mid")
 ;(def midi-src "midi/song_for_my_father.mid")
-(def midi-src "midi/tetris.mid")
+;(def midi-src "midi/tetris.mid")
+;(def midi-src "midi/nocturne_1.mid")
 
 ;; -------------------------
 ;; Routes
@@ -42,10 +50,48 @@
   (fn [] (player/on-midi-loaded))
   )
 
+(def player-atom (r/atom {:midi-src ""}))
+
+(defn on-midi-change [e]
+  (let
+    [new-midi-src (j/get-in e [:target :value])]
+    (js/console.log (j/get-in e [:target :value]))
+    (swap-vals! player-atom assoc :midi-src new-midi-src)
+    )
+  )
+
+(defn load-midi-menu-items []
+  (let
+    [load "TODO: load"]
+    (
+     [menu-item {:value "10"} "Ten"]
+     [menu-item {:value "20"} "Twenty"]
+     [menu-item {:value "30"} "Thirty"])
+    )
+  )
+
+(defn on-midi-file-selected [file]
+  (js/console.log file)
+  (js/console.log (j/get file :files))
+  )
+
 (defn home-page []
   (fn []
     [:span.main
      [:h1 "Ludovico"]
+     ; https://material-ui.com/components/selects/
+     [:div
+      [:h5 {:class "section-label"} "Load Midi"]
+      [:input {:type "file" :on-change on-midi-file-selected}]
+
+      [form-control {:class "midi-select-form"}
+       [select {:value (get @player-atom :midi-src) :display-empty true :class "select-empty" :on-change on-midi-change}
+        [menu-item {:value "" :disabled true} "Select MIDI"]
+        (load-midi-menu-items)
+        ;[form-helper-text "Placeholder"]
+        ]
+       ]
+      ]
      [:div
       [:h5 {:class "section-label"} "Midijs"]
       [:audio {:id "midijs-audio-track" :src midi-src :status "stopped"}]
