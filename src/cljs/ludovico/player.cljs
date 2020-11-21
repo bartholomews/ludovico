@@ -51,7 +51,8 @@
   (js/console.log (j/call js/MIDIjs :get_audio_status))
   ;(j/assoc! js/MIDIjs :player_callback (fn [e] (js/console.log e)))
   ; https://www.midijs.net/midijs_api.html
-  (with-fixed-delay #(srcF js/MIDIjs.play el))
+  ; (with-fixed-delay #(srcF js/MIDIjs.play el))
+  (srcF js/MIDIjs.play el)
   (sketch/start (first (get @midi-player-atom :notes)))     ; FIXME: user-selectable notes (rename to tracks)
   (update-player-next "Pause")
   )

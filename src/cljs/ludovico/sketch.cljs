@@ -13,7 +13,10 @@
 
 ; tile width = canvas width / 88
 (def tile-width 10)
-(defn tile-height [note-duration-ms] (* 50 note-duration-ms))
+
+(defn note-height [canvas-height note-duration-sec canvas-duration-sec]
+  "note-height : canvas-height = note-duration-sec : canvas-duration-sec"
+    (/ (* note-duration-sec canvas-height) canvas-duration-sec))
 
 ; https://syntheway.com/MIDI_Keyboards_Middle_C_MIDI_Note_Number_60_C4.htm
 (defn tile-x [midi-key]
@@ -48,13 +51,15 @@
   )
 
 (defn get-elapsed-time []
-  (let
-    [time (q/state :time)]
-    (cond
-      (nil? time) (/ (- (q/millis) (q/state :start)) 1000)
-      :else time
-      )
-    )
+  "Time (in seconds) since the playback started"
+  ;(let
+  ;  [time (q/state :player-time)]
+  ;  (cond
+  ;    (nil? time) (/ (- (q/millis) (q/state :start)) 1000)
+  ;    :else time
+  ;    )
+  ;  )
+  (/ (- (q/millis) (q/state :start)) 1000)
   )
 
 (defn note-distance [note]
@@ -71,33 +76,78 @@
     )
   )
 
+(defn note-distance-smooth [elapsed-time note]
+  "The distance in seconds of note from elapsed time (i.e. how long until it should be played).
+   If negative, it means that the note has already been played and it's the distance from when it has been played."
+  (let [note-time (j/get note :time)]
+    (cond
+      (< elapsed-time 0) (- note-time elapsed-time)
+      :else (- note-time elapsed-time)
+      )
+    )
+  )
+
 (defn play-midi-note [note] (j/call note :synthF))
+
+(defn landing-in-sec [canvas-height current-height]
+  "Time in seconds to reach the bottom (i.e. canvas-height)"
+  (/ (- canvas-height current-height) (q/target-frame-rate)))
+
+(defn height-for-distance [canvas-height sec]
+  "Height value of a point in order to be at `sec` to reach the bottom (i.e. canvas-height)"
+  (- canvas-height (* sec (q/target-frame-rate)))
+  )
 
 (defn display-note-rect [note]
   (let [
-        distance (note-distance note)
-        percentage (* (/ distance 5.0) 100)
+        elapsed-time (get-elapsed-time)
+        distance-from-note-on-sec (note-distance-smooth elapsed-time note)
         pitch-midi-number (j/get note :midi)
-        reverse-percentage (- 100 percentage)
-        tile-y (* 500 (/ reverse-percentage 100))
-        note-duration-ms (j/get note :duration)
+        note-duration-sec (j/get note :duration)
+        canvas-height 500
+        ; the time in seconds to consume a whole canvas from top to bottom
+        canvas-duration-sec (landing-in-sec canvas-height 0)
+        tile-height (note-height canvas-height note-duration-sec canvas-duration-sec)
+        tile-y (height-for-distance canvas-height distance-from-note-on-sec)
         ]
     ; use RGB with 42 max value and draw 75% transparent blue
-    (q/color-mode :rgb 40)
-    (q/fill 0 0 40 30)
-    (q/rect (tile-x pitch-midi-number) tile-y tile-width (tile-height note-duration-ms))
+    ;(q/color-mode :rgb 40)
+    ;(js/console.log "tile-y")
+    ;(js/console.log tile-y)
+    ;(q/fill 0 0 40 30)
+    (q/rect (tile-x pitch-midi-number) (- tile-y tile-height) tile-width tile-height)
+    )
+  )
+
+(defn has-been-played [elapsed-time note]
+  ""
+  (let [
+        distance-from-note-on (note-distance-smooth elapsed-time note)
+        distance-from-note-off (+ distance-from-note-on (j/get note :duration))
+        ]
+    ;(js/console.log "elapsed-time")
+    ;(js/console.log elapsed-time)
+    ;(js/console.log "distance-from-note-on")
+    ;(js/console.log distance-from-note-on)
+    ;(js/console.log "distance-from-note-off")
+    ;(js/console.log distance-from-note-off)
+    (< distance-from-note-off -1)
     )
   )
 
 (defn should-display-note [note]
   "Return true if note rect should be be in canvas, false otherwise.
-   A note which is not already played and less than 5s away from current-time should be displayed in canvas."
-  (let [distance (note-distance note)] (and (> distance -1) (< distance 5)))
+   A note at height > 0 and < canvas-height"
+  (let [
+        distance-from-note-on (note-distance note)
+        distance-from-note-off (+ distance-from-note-on (j/get note :duration))
+        ]
+    (and (> distance-from-note-off -1) (< distance-from-note-on 5)))
   )
 
 (defn player-callback [event]
   (q/with-sketch (getSketch)
-                 (swap! (q/state-atom) assoc-in [:time] (j/get event :time))
+                 (swap! (q/state-atom) assoc-in [:player-time] (j/get event :time))
                  )
   )
 
@@ -106,36 +156,32 @@
     (js/console.log "Starting sketch")
     (js/console.log midi-track-notes)
     (q/frame-rate frame-rate)
-    (q/stroke 0xff3090a1)
-    (q/stroke-weight 2)
-    (q/fill 0xff7bcecc)
     (j/assoc! js/MIDIjs :player_callback player-callback)
     ;(q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
-    (q/set-state! :time nil :notes midi-track-notes :start (+ (q/millis) fixed-delay)))
-  )
-
-(defn has-been-played [elapsed-time note]
-  (> elapsed-time (j/get note :time))
+    (q/set-state! :player-time nil :notes (take 12 midi-track-notes) :start (+ (q/millis) fixed-delay)))
   )
 
 (defn draw []
   (let [
         notes (q/state :notes)
         elapsed-time (get-elapsed-time)
-        notes-to-display (take-while (fn [note] (should-display-note note)) notes)
+        ;notes-to-display (take-while (fn [note] (should-display-note note)) notes)
         played-not-played (split-with (fn [note] (has-been-played elapsed-time note)) notes)
         ]
-    (q/background 0 0 0)
+    (q/background 255)
     (q/fill 0)
     ;(q/clear)
     ;(dorun (map play-midi-note (first played-not-played)))
-    (dorun (map display-note-rect notes-to-display))
-    ;(swap! (q/state-atom) assoc-in [:time] evt)
+    (dorun (map display-note-rect notes))
+    ;(swap! (q/state-atom) assoc-in [:player-time] evt)
+
     (swap! (q/state-atom) assoc-in [:notes] (last played-not-played))
-    ;(q/text (str "Frame rate: " (q/target-frame-rate)) 350 20)
-    ;(q/text (str "Frame count: " (/ fps 100)) 350 40)
+    ;(q/text (str "Frame count: " (q/frame-count)) 600 40)
+    ;(q/text (str "Frame rate: " (q/target-frame-rate)) 600 60)
     ;(q/text (str "Start time: " (get state :start)) 350 40)
-    ;(q/text (str "Current time: " current-time) 350 60)
+    ;(q/text (str "Millis time: " (- (q/millis) (q/state :start))) 600 80)
+    ;(q/text (str "Current time: " elapsed-time) 600 100)
+    ;(q/text (str "Player time: " (q/state :player-time)) 600 120)
     )
   )
 
@@ -146,7 +192,7 @@
   (q/sketch
     :host "sketch"
     :size [880 500]
-    :setup (setup 32 5000 midi-track)
+    :setup (setup 60 0 midi-track)
     :draw draw
     )
   )
