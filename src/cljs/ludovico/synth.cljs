@@ -4,6 +4,7 @@
     [cljs-bach.synthesis :as bach]
     [cljs.core.match :refer-macros [match]]
     [dommy.core :refer-macros [sel sel1]]
+    [ludovico.interop :as in]
     ))
 
 ; https://github.com/ctford/cljs-bach
@@ -34,11 +35,14 @@
     (bach/gain 0.1))
   )
 
-(defn play-bach! [midi-number duration]
+(defn test-bach! [midi-number duration]
   "Play a note with cljs/back"
   (let [synth (-> (ping (to-frequency midi-number)) (bach/connect-> bach/destination))]
-    (fn [] (bach/run-with synth context (bach/current-time context) duration)))
-  )
+    (fn [] (bach/run-with synth context (bach/current-time context) duration))))
+
+; https://github.com/danigb/soundfont-player
+(defn test-soundfont! []
+  (fn [] (in/when-resolved (in/get-instrument "applause") (fn [instrument] (j/call instrument :play "C4")))))
 
 ; https://github.com/danigb/soundfont-player
 (defn play-soundfont! [instrument midi-number current-time duration]

@@ -19,12 +19,6 @@
     )
   )
 
-;(def midi-src "midi/fur_elise.mid")
-(def midi-src "midi/toccata_and_fugue_in_d_minor.mid")
-;(def midi-src "midi/song_for_my_father.mid")
-;(def midi-src "midi/tetris.mid")
-;(def midi-src "midi/nocturne_1.mid")
-
 ;; -------------------------
 ;; Routes
 
@@ -76,7 +70,8 @@
        [:button {:on-click #(player/on-stop-btn-click)} [:span "Stop"]]
        ]
       ]
-     [:div [:button {:aria-checked "false" :on-click (synth/play-bach! 74 0.1)} [:span "Ping"]]]
+     [:div [:button {:aria-checked "false" :on-click (synth/test-bach! 74 0.1)} [:span "Test Bach"]]]
+     [:div [:button {:aria-checked "false" :on-click (synth/test-soundfont!)} [:span "Test Soundfont"]]]
      ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      [:div#sketch]
      ;[:ul [:li [:a {:href (path-for :songs)} "Songs list"]]]

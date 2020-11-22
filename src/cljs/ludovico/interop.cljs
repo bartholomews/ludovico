@@ -3,9 +3,10 @@
     [applied-science.js-interop :as j]
     [cljs.core.match :refer-macros [match]]
     [dommy.core :refer-macros [sel sel1]]
-    [ludovico.midi :as midi]
     [ludovico.synth :as synth]
     ))
+
+(defn with-fixed-delay [delay-ms f] (js/setTimeout f delay-ms))
 
 ; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
 (defn when-all-resolved [promises actionF]

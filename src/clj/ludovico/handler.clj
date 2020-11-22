@@ -28,8 +28,6 @@
     ; FIXME: Try to use a clojure-only thing like Leipzig
     ; https://github.com/Tonejs/Midi
     [:script {:type "text/javascript" :src (hiccup.util/to-uri "https://unpkg.com/@tonejs/midi")}]
-    ; https://www.midijs.net/
-    [:script {:type "text/javascript", :src (hiccup.util/to-uri "//www.midijs.net/lib/midi.js")}]
     ]
    ))
 

@@ -15,26 +15,14 @@
 
 (defn update-player-label-next [state] (swap-vals! midi-player-atom assoc :next state))
 
-(defn get-sketch-canvas-element [] (sel1 :#sketch))
-(defn get-audio-element [] (sel1 :#midi-track))
-
-; https://github.com/danigb/soundfont-player
-(defn play-soundfont []
-  (in/when-resolved (in/get-instrument "applause")
-                    (fn [instrument]
-                      (swap-vals! midi-player-atom assoc :instrument instrument)
-                      (j/call instrument :play "C4")
-                      ))
-  )
-
 (defn addSynthF [note instrument]
   (let [
         midi-note (j/get note :midi)
         duration (j/get note :duration)
         ]
     (j/assoc! note :synthF
-              (synth/play-bach! midi-note duration)
-              ;(fn [context] (synth/play-soundfont! instrument midi-note (j/get context :currentTime) duration))
+              ;(synth/play-bach! midi-note duration)
+              (fn [context] (synth/play-soundfont! instrument midi-note (j/get context :currentTime) duration))
               )
     )
   )
@@ -77,60 +65,39 @@
                                                         )))
   )
 
-(defn with-fixed-delay [f] (js/setTimeout f 4250))
 (defn srcF [f el] (f (dommy/attr el "src")))
 
-(defn play [el]
+(defn play []
   (let [first-track (first (get @midi-player-atom :tracks))]
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ; https://www.midijs.net/midijs_api.html
-    ;(js/console.log (j/call js/MIDIjs :get_audio_status))
-    ;(with-fixed-delay #(srcF js/MIDIjs.play el))
-    ;(srcF js/MIDIjs.play el)
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     (js/console.log first-track)
     ;(synth/schedule-soundfont! (j/get-in first-track [:instrument :soundfont]))
-    (sketch/start first-track)                              ; FIXME: user-selectable notes (rename to tracks)
+    (sketch/start first-track)
     (update-player-label-next "Pause")
     )
   )
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn pause [el]
+(defn pause []
   (sketch/toggle)
-  (srcF js/MIDIjs.pause el)
   (update-player-label-next "Resume")
   )
 
-(defn resume [el]
+(defn resume []
   (sketch/toggle)
-  (srcF js/MIDIjs.resume el)
   (update-player-label-next "Pause")
   )
 
 (defn on-play-btn-click []
   "https://www.midijs.net/midijs_api.html"
-  (let [el (get-audio-element)]
-    (match [(get @midi-player-atom :next)]
-           ["Play"] (play el)
-           ["Pause"] (pause el)
-           ["Resume"] (resume el)
-           )
-    )
+  (match [(get @midi-player-atom :next)]
+         ["Play"] (play)
+         ["Pause"] (pause)
+         ["Resume"] (resume)
+         )
   )
 
 (defn on-stop-btn-click []
-  (let [el (get-audio-element)]
-    ;(sketch/exit)
-    ;(srcF js/MIDIjs.stop el)
     (sketch/exit)
-    (srcF js/MIDIjs.stop el)
-    (update-player-label-next "Play")))
-
-(defn current-time []
-  (js/console.log synth/context)
-  (j/get synth/context :currentTime)
-  )
+    (update-player-label-next "Play"))
 
 (defn on-midi-loaded [midi-src]
   "https://github.com/prasincs/web-audio-project/blob/master/src-cljs/web_audio_project/client.cljs"
