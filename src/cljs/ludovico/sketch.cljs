@@ -176,7 +176,7 @@
       ;(j/assoc! js/MIDIjs :player_callback player-callback)
       ;(q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
       ;(q/set-state! :player-time nil :notes midi-track-notes :start (+ (q/millis) fixed-delay)))
-      (q/set-state! :notes [(first notes)] :start (+ (q/millis) fixed-delay)))
+      (q/set-state! :notes notes :notes-playing [] :start (+ (q/millis) fixed-delay)))
     )
   )
 
@@ -222,42 +222,23 @@
 (defn draw []
   (let [
         elapsed-time (get-elapsed-time)
-        notes (q/state :notes)
-        ; FIXME: Do some tailrec and map the note into a tile
-        ;present-future (evaluate notes [] elapsed-time)
-        ;present (first present-future)
-        ;future (last present-future)
-        notes-to-display (take-while (fn [note] (is-not-future-note note)) notes)
-        ; FIXME do inline F:
-        notes-to-play (take-while (fn [note] (has-started-playing note elapsed-time)) notes-to-display) ; notes-to-display)
-        _ (js/console.log (str "PLAY?" (count notes-to-play)))
-        to-remove-to-keep (split-with (fn [note] (has-finished-playing note elapsed-time)) notes)
-        _ (js/console.log (str (count (first to-remove-to-keep)) " to remove"))
-        _ (js/console.log (str (count (last to-remove-to-keep)) " to keep"))
+        notes-not-playing (q/state :notes)
+        notes-playing (filter (fn [note] (not (has-finished-playing note elapsed-time))) (q/state :notes-playing))
+        [in-canvas not-in-canvas] (split-with (fn [note] (is-not-future-note note)) notes-not-playing)
+        to-play-in-canvas-not-playing (split-with (fn [note] (has-started-playing note elapsed-time)) in-canvas)
+        [new-notes-playing in-canvas-not-playing] (split-with (fn [note] (has-started-playing note elapsed-time)) in-canvas)
         ]
     (q/background 255)
     (q/fill 0)
-    ;(q/clear
-
+    ;(js/console.log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     ;FIXME play all of them at once instead of map
-    (dorun (map play-midi-note notes-to-play))
-
-    ;(js/console.log (str "notes: " (count notes)))
-    ;(js/console.log (str "notes-to-display: " (count notes-to-display)))
-    ;(js/console.log (str "played: " (count (first played-not-played))))
-    ;(js/console.log (str "not-played: " (count (last played-not-played))))
-
+    (dorun (map play-midi-note (first to-play-in-canvas-not-playing)))
     ;(dorun (map display-note-rect notes))
-    (dorun (map display-note-rect notes-to-display))
-
-    (swap! (q/state-atom) assoc-in [:notes] (last to-remove-to-keep))
-    ;(swap! (q/state-atom) assoc-in [:notes] (concat present future))
-    ;(swap! (q/state-atom) assoc-in [:player-time] evt)
-
-    ;(js/console.log (count notes))
-    ;(js/console.log (count present))
-    ;(swap! (q/state-atom) assoc-in [:notes] (concat present future))
-
+    (dorun (map display-note-rect (concat notes-playing in-canvas)))
+    ;(js/console.log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    (swap! (q/state-atom) assoc-in [:notes] (doall (concat in-canvas-not-playing not-in-canvas)))
+    (swap! (q/state-atom) assoc-in [:notes-playing] (concat new-notes-playing notes-playing))
+    ;(js/console.log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     ;(q/text (str "Frame count: " (q/frame-count)) 600 40)
     ;(q/text (str "Frame rate: " (q/target-frame-rate)) 600 60)
     ;(q/text (str "Start time: " (get state :start)) 350 40)

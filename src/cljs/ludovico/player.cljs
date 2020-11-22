@@ -90,7 +90,7 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     (js/console.log first-track)
     ;(synth/schedule-soundfont! (j/get-in first-track [:instrument :soundfont]))
-    (sketch/start first-track)    ; FIXME: user-selectable notes (rename to tracks)
+    (sketch/start first-track)                              ; FIXME: user-selectable notes (rename to tracks)
     (update-player-label-next "Pause")
     )
   )

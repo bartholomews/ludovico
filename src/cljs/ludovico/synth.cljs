@@ -37,9 +37,7 @@
 (defn play-bach! [midi-number duration]
   "Play a note with cljs/back"
   (let [synth (-> (ping (to-frequency midi-number)) (bach/connect-> bach/destination))]
-    (fn []
-      (js/console.log (str "Play " midi-number "!"))
-      (bach/run-with synth context (bach/current-time context) duration)))
+    (fn [] (bach/run-with synth context (bach/current-time context) duration)))
   )
 
 ; https://github.com/danigb/soundfont-player
