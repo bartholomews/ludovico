@@ -16,7 +16,7 @@
 
 (defn note-height [canvas-height note-duration-sec canvas-duration-sec]
   "note-height : canvas-height = note-duration-sec : canvas-duration-sec"
-    (/ (* note-duration-sec canvas-height) canvas-duration-sec))
+  (/ (* note-duration-sec canvas-height) canvas-duration-sec))
 
 ; https://syntheway.com/MIDI_Keyboards_Middle_C_MIDI_Note_Number_60_C4.htm
 (defn tile-x [midi-key]
@@ -135,14 +135,32 @@
     )
   )
 
-(defn should-display-note [note]
+(defn inspect-note [note elapsed-time]
   "Return true if note rect should be be in canvas, false otherwise.
    A note at height > 0 and < canvas-height"
   (let [
-        distance-from-note-on (note-distance note)
-        distance-from-note-off (+ distance-from-note-on (j/get note :duration))
+        distance-from-note-on-sec (note-distance-smooth elapsed-time note)
+        pitch-midi-number (j/get note :midi)
+        note-duration-sec (j/get note :duration)
+        canvas-height 500
+        ; the time in seconds to consume a whole canvas from top to bottom
+        canvas-duration-sec (landing-in-sec canvas-height 0)
+        tile-height (note-height canvas-height note-duration-sec canvas-duration-sec)
+        tile-y (- (height-for-distance canvas-height distance-from-note-on-sec) tile-height)
         ]
-    (and (> distance-from-note-off -1) (< distance-from-note-on 5)))
+    ; use RGB with 42 max value and draw 75% transparent blue
+    ;(q/color-mode :rgb 40)
+    ;(js/console.log "tile-y")
+    ;(js/console.log tile-y)
+    ;(q/fill 0 0 40 30)
+    (js/console.log "tile-y")
+    (js/console.log tile-y)
+    (cond
+      (> tile-y canvas-height) {:type "past" :display false}
+      (< tile-y 0) {:type "future" :display false}
+      :else {:type "present" :display true :x (tile-x pitch-midi-number) :y (- tile-y tile-height) :w tile-width :h tile-height}
+      )
+    )
   )
 
 (defn player-callback [event]
@@ -154,28 +172,85 @@
 (defn setup [frame-rate fixed-delay midi-track-notes]
   (fn []
     (js/console.log "Starting sketch")
-    (js/console.log midi-track-notes)
+    ;(js/console.log midi-track-notes)
     (q/frame-rate frame-rate)
-    (j/assoc! js/MIDIjs :player_callback player-callback)
+    ;(j/assoc! js/MIDIjs :player_callback player-callback)
     ;(q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
-    (q/set-state! :player-time nil :notes (take 12 midi-track-notes) :start (+ (q/millis) fixed-delay)))
+    (q/set-state! :player-time nil :notes midi-track-notes :start (+ (q/millis) fixed-delay)))
   )
+
+(defn is-not-future-note [note]
+  (let [
+        elapsed-time (get-elapsed-time)
+        distance-from-note-on-sec (note-distance-smooth elapsed-time note)
+        canvas-height 500
+        tile-y (height-for-distance canvas-height distance-from-note-on-sec)
+        ]
+    (> tile-y 0)
+    )
+  )
+
+(defn evaluate [notes]
+  "Take from notes until above canvas (i.e. height 0)
+   and appends to first item of the result (present-notes).
+   If the note is past (height > canvas-height) discards it.
+   Returns a vector of [(present-notes) (future-notes)]"
+  (cond
+    (empty? notes) nil
+    :else (let [
+                elapsed-time (get-elapsed-time)
+                note (first notes)
+                distance-from-note-on-sec (note-distance-smooth elapsed-time note)
+                pitch-midi-number (j/get note :midi)
+                note-duration-sec (j/get note :duration)
+                canvas-height 500
+                ; the time in seconds to consume a whole canvas from top to bottom
+                canvas-duration-sec (landing-in-sec canvas-height 0)
+                tile-height (note-height canvas-height note-duration-sec canvas-duration-sec)
+                tile-y (height-for-distance canvas-height distance-from-note-on-sec)
+                ]
+
+            (cond
+              (> tile-y canvas-height) (evaluate (rest notes))
+              (< tile-y 0) nil
+              :else (q/rect (tile-x pitch-midi-number) (- tile-y tile-height) tile-width tile-height)
+              )
+            )
+    ))
 
 (defn draw []
   (let [
-        notes (q/state :notes)
         elapsed-time (get-elapsed-time)
-        ;notes-to-display (take-while (fn [note] (should-display-note note)) notes)
+        notes (q/state :notes)
+        ; FIXME: Do some tailrec and map the note into a tile
+        ;present-future (evaluate notes [] elapsed-time)
+        ;present (first present-future)
+        ;future (last present-future)
+        notes-to-display (take-while (fn [note] (is-not-future-note note)) notes)
         played-not-played (split-with (fn [note] (has-been-played elapsed-time note)) notes)
         ]
     (q/background 255)
     (q/fill 0)
-    ;(q/clear)
+    ;(q/clear
+
     ;(dorun (map play-midi-note (first played-not-played)))
-    (dorun (map display-note-rect notes))
-    ;(swap! (q/state-atom) assoc-in [:player-time] evt)
+
+    ;(js/console.log (str "notes: " (count notes)))
+    ;(js/console.log (str "notes-to-display: " (count notes-to-display)))
+    ;(js/console.log (str "played: " (count (first played-not-played))))
+    ;(js/console.log (str "not-played: " (count (last played-not-played))))
+
+    ;(dorun (map display-note-rect notes))
+    (dorun (map display-note-rect notes-to-display))
 
     (swap! (q/state-atom) assoc-in [:notes] (last played-not-played))
+    ;(swap! (q/state-atom) assoc-in [:notes] (concat present future))
+    ;(swap! (q/state-atom) assoc-in [:player-time] evt)
+
+    ;(js/console.log (count notes))
+    ;(js/console.log (count present))
+    ;(swap! (q/state-atom) assoc-in [:notes] (concat present future))
+
     ;(q/text (str "Frame count: " (q/frame-count)) 600 40)
     ;(q/text (str "Frame rate: " (q/target-frame-rate)) 600 60)
     ;(q/text (str "Start time: " (get state :start)) 350 40)
@@ -192,7 +267,7 @@
   (q/sketch
     :host "sketch"
     :size [880 500]
-    :setup (setup 60 0 midi-track)
+    :setup (setup 45 0 midi-track)
     :draw draw
     )
   )
