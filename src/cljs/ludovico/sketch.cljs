@@ -52,29 +52,7 @@
 
 (defn get-elapsed-time []
   "Time (in seconds) since the playback started"
-  ;(let
-  ;  [time (q/state :player-time)]
-  ;  (cond
-  ;    (nil? time) (/ (- (q/millis) (q/state :start)) 1000)
-  ;    :else time
-  ;    )
-  ;  )
-  (/ (- (q/millis) (q/state :start)) 1000)
-  )
-
-(defn note-distance [note]
-  "The distance in millis of note from elapsed time (i.e. how long until it should be played).
-   If negative, it means that the note has already been played."
-  (let [
-        elapsed-time (get-elapsed-time)
-        note-time (j/get note :time)
-        ]
-    (cond
-      (< elapsed-time 0) (- note-time elapsed-time)
-      :else (- note-time elapsed-time)
-      )
-    )
-  )
+  (/ (- (q/millis) (q/state :start)) 1000))
 
 (defn get-distance-from-note-on [elapsed-time note]
   "The distance in seconds of note from elapsed time (i.e. how long until it should be played).
@@ -131,40 +109,6 @@
   "Whether a 'note off' time has passed (i.e. it has completely rolled over canvas height)"
   (< (get-distance-from-note-off note elapsed-time) 0))
 
-(defn inspect-note [note elapsed-time]
-  "Return true if note rect should be be in canvas, false otherwise.
-   A note at height > 0 and < canvas-height"
-  (let [
-        distance-from-note-on-sec (get-distance-from-note-on elapsed-time note)
-        pitch-midi-number (j/get note :midi)
-        note-duration-sec (j/get note :duration)
-        canvas-height 500
-        ; the time in seconds to consume a whole canvas from top to bottom
-        canvas-duration-sec (landing-in-sec canvas-height 0)
-        tile-height (note-height canvas-height note-duration-sec canvas-duration-sec)
-        tile-y (- (height-for-distance canvas-height distance-from-note-on-sec) tile-height)
-        ]
-    ; use RGB with 42 max value and draw 75% transparent blue
-    ;(q/color-mode :rgb 40)
-    ;(js/console.log "tile-y")
-    ;(js/console.log tile-y)
-    ;(q/fill 0 0 40 30)
-    (js/console.log "tile-y")
-    (js/console.log tile-y)
-    (cond
-      (> tile-y canvas-height) {:type "past" :display false}
-      (< tile-y 0) {:type "future" :display false}
-      :else {:type "present" :display true :x (tile-x pitch-midi-number) :y (- tile-y tile-height) :w tile-width :h tile-height}
-      )
-    )
-  )
-
-(defn player-callback [event]
-  (q/with-sketch (getSketch)
-                 (swap! (q/state-atom) assoc-in [:player-time] (j/get event :time))
-                 )
-  )
-
 (defn setup [frame-rate fixed-delay midi-track]
   (fn []
     (let [
@@ -190,34 +134,6 @@
     (> tile-y 0)
     )
   )
-
-(defn evaluate [notes]
-  "Take from notes until above canvas (i.e. height 0)
-   and appends to first item of the result (present-notes).
-   If the note is past (height > canvas-height) discards it.
-   Returns a vector of [(present-notes) (future-notes)]"
-  (cond
-    (empty? notes) nil
-    :else (let [
-                elapsed-time (get-elapsed-time)
-                note (first notes)
-                distance-from-note-on-sec (get-distance-from-note-on elapsed-time note)
-                pitch-midi-number (j/get note :midi)
-                note-duration-sec (j/get note :duration)
-                canvas-height 500
-                ; the time in seconds to consume a whole canvas from top to bottom
-                canvas-duration-sec (landing-in-sec canvas-height 0)
-                tile-height (note-height canvas-height note-duration-sec canvas-duration-sec)
-                tile-y (height-for-distance canvas-height distance-from-note-on-sec)
-                ]
-
-            (cond
-              (> tile-y canvas-height) (evaluate (rest notes))
-              (< tile-y 0) nil
-              :else (q/rect (tile-x pitch-midi-number) (- tile-y tile-height) tile-width tile-height)
-              )
-            )
-    ))
 
 (defn draw []
   (let [
