@@ -3,7 +3,6 @@
     [applied-science.js-interop :as j]
     [cljs.core.match :refer-macros [match]]
     [dommy.core :refer-macros [sel sel1]]
-    [ludovico.synth :as synth]
     ))
 
 (defn with-fixed-delay [delay-ms f] (js/setTimeout f delay-ms))
@@ -21,6 +20,6 @@
     )
   )
 
-(defn get-instrument [instrument] (j/call js/Soundfont :instrument synth/context instrument))
+(defn get-instrument [context instrument] (j/call js/Soundfont :instrument context instrument))
 
 (defn get-midi-src [midi-src] (j/call js/Midi :fromUrl midi-src))

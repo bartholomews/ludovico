@@ -33,7 +33,7 @@
   (let [
         midi-instrument-number (j/get-in track [:instrument :number])
         track-instrument (get midi/instruments midi-instrument-number)]
-    (in/when-resolved (in/get-instrument track-instrument)
+    (in/when-resolved (in/get-instrument synth/context track-instrument)
                       (fn [instrument] (j/update! track :notes (with-synth-f instrument))))
     )
   )

@@ -42,7 +42,7 @@
 
 ; https://github.com/danigb/soundfont-player
 (defn test-soundfont! []
-  (fn [] (in/when-resolved (in/get-instrument "applause") (fn [instrument] (j/call instrument :play "C4")))))
+  (fn [] (in/when-resolved (in/get-instrument context "applause") (fn [instrument] (j/call instrument :play "C4")))))
 
 ; https://github.com/danigb/soundfont-player
 (defn play-soundfont! [instrument midi-number current-time duration]
