@@ -55,15 +55,8 @@
   (/ (- (q/millis) (q/state :start)) 1000))
 
 (defn get-distance-from-note-on [elapsed-time note]
-  "The distance in seconds of note from elapsed time (i.e. how long until it should be played).
-   If negative, it means that the note has already been played and it's the distance from when it has been played."
-  (let [note-time (j/get note :time)]
-    (cond
-      (< elapsed-time 0) (- note-time elapsed-time)
-      :else (- note-time elapsed-time)
-      )
-    )
-  )
+  "The distance in seconds of note from elapsed time (i.e. how long until it should be played)."
+  (- (j/get note :time) elapsed-time))
 
 (defn get-distance-from-note-off [note elapsed-time]
   (+ (get-distance-from-note-on elapsed-time note) (j/get note :duration))
@@ -141,14 +134,13 @@
         notes-not-playing (q/state :notes)
         notes-playing (filter (fn [note] (not (has-finished-playing note elapsed-time))) (q/state :notes-playing))
         [in-canvas not-in-canvas] (split-with (fn [note] (is-not-future-note note)) notes-not-playing)
-        to-play-in-canvas-not-playing (split-with (fn [note] (has-started-playing note elapsed-time)) in-canvas)
         [new-notes-playing in-canvas-not-playing] (split-with (fn [note] (has-started-playing note elapsed-time)) in-canvas)
         ]
     (q/background 255)
     (q/fill 0)
     ;(js/console.log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     ;FIXME play all of them at once instead of map
-    (dorun (map play-midi-note (first to-play-in-canvas-not-playing)))
+    (dorun (map play-midi-note new-notes-playing))
     ;(dorun (map display-note-rect notes))
     (dorun (map display-note-rect (concat notes-playing in-canvas)))
     ;(js/console.log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
