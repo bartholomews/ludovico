@@ -234,7 +234,8 @@
     (q/fill 0)
     ;(q/clear
 
-    ;(dorun (map play-midi-note (first played-not-played)))
+    ;FIXME play all of them at once instead of map
+    (dorun (map play-midi-note (first played-not-played)))
 
     ;(js/console.log (str "notes: " (count notes)))
     ;(js/console.log (str "notes-to-display: " (count notes-to-display)))

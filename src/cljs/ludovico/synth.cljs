@@ -3,9 +3,7 @@
     [applied-science.js-interop :as j]
     [cljs-bach.synthesis :as bach]
     [cljs.core.match :refer-macros [match]]
-    [dommy.core :as dommy :refer-macros [sel sel1]]
-    [ludovico.sketch :as sketch]
-    [ludovico.player :as player]
+    [dommy.core :refer-macros [sel sel1]]
     ))
 
 ; https://github.com/ctford/cljs-bach
@@ -29,15 +27,6 @@
   (let [exp (/ (- midi-number 69) 12)] (* (Math/pow 2 exp) 440))
   )
 
-(defn play! [instrument midi-number duration]
-  ;(bach/run-with synth context (bach/current-time context) duration)
-  (j/call instrument :play midi-number (j/get context :currentTime) {:duration duration})
-  )
-
-(defn note-duration [note-1 note-2]
-  (< (j/get note-1 :duration) (j/get note-2 :duration))
-  )
-
 (defn ping [frequency]
   (bach/connect->
     (bach/triangle frequency)
@@ -45,19 +34,43 @@
     (bach/gain 0.1))
   )
 
-; https://github.com/danigb/soundfont-player
-(defn play-soundfont []
-  (js/console.log "TODO")
-  ;(.then (js/Promise.resolve (j/call js/Soundfont :instrument context "marimba"))
-  ;       (fn [marimba] (j/call marimba :play "C4")))
+(defn play-bach! [midi-number duration]
+  "Play a note with cljs/back"
+  (let [synth (-> (ping (to-frequency midi-number)) (bach/connect-> bach/destination))]
+    (fn []
+      (js/console.log (str "Play " midi-number "!"))
+      (bach/run-with synth context (bach/current-time context) duration)))
   )
 
-(defn play-midi-note-f [midi-number duration]
-  ;(let [synth (-> (ping (to-frequency midi-number)) (bach/connect-> bach/destination))]
-  ;  (fn [] (play! synth duration)))
-  (let [instrument (get @player/midi-player-atom :instrument)]
-    (fn [] (play! instrument midi-number duration))
+; https://github.com/danigb/soundfont-player
+(defn play-soundfont! [instrument midi-number current-time duration]
+  "Play a note with Soundfont"
+  (j/call instrument :play midi-number current-time {:duration duration})
+  )
+
+(defn make-soundfont-note [midijs-note]
+  (->
+    (j/select-keys midijs-note [:time])
+    (j/assoc! :note (j/get midijs-note :midi))
     )
+  )
+
+; https://github.com/danigb/soundfont-player
+(defn schedule-soundfont! [instrument notes]
+  "Schedule notes with Soundfont"
+  (let [
+        current-time (j/get context :currentTime)
+        _ (js/console.log notes)
+        soundfont-notes (j/call notes :map make-soundfont-note)
+        ]
+    (js/console.log current-time)
+    (js/console.log soundfont-notes)
+    (j/call instrument :schedule (+ current-time 5) soundfont-notes)
+    )
+  )
+
+(defn note-duration [note-1 note-2]
+  (< (j/get note-1 :duration) (j/get note-2 :duration))
   )
 
 ;(defn getConnection []
@@ -102,12 +115,3 @@
 ;  ;(if (= () false))
 ;  (. (getAudioElement) play)
 ;  )
-
-(defn addSynthF [note]
-  (let [
-        midi-note (j/get note :midi)
-        duration (j/get note :duration)
-        ]
-    (j/assoc! note :synthF (play-midi-note-f midi-note duration))
-    )
-  )
