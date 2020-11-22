@@ -33,7 +33,7 @@
         duration (j/get note :duration)
         ]
     (j/assoc! note :synthF
-              (fn [] (synth/play-bach! midi-note duration))
+              (synth/play-bach! midi-note duration)
               ;(fn [context] (synth/play-soundfont! instrument midi-note (j/get context :currentTime) duration))
               )
     )
@@ -84,13 +84,14 @@
   (let [first-track (first (get @midi-player-atom :tracks))]
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; https://www.midijs.net/midijs_api.html
-    (js/console.log (j/call js/MIDIjs :get_audio_status))
+    ;(js/console.log (j/call js/MIDIjs :get_audio_status))
     ;(with-fixed-delay #(srcF js/MIDIjs.play el))
+    ;(srcF js/MIDIjs.play el)
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     (js/console.log first-track)
-    (synth/schedule-soundfont! (j/get-in first-track [:instrument :soundfont]))
-                        ; (sketch/start first-track)    ; FIXME: user-selectable notes (rename to tracks)
-                        (update-player-label-next "Pause")
+    ;(synth/schedule-soundfont! (j/get-in first-track [:instrument :soundfont]))
+    (sketch/start first-track)    ; FIXME: user-selectable notes (rename to tracks)
+    (update-player-label-next "Pause")
     )
   )
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -76,7 +76,7 @@
     )
   )
 
-(defn note-distance-smooth [elapsed-time note]
+(defn get-distance-from-note-on [elapsed-time note]
   "The distance in seconds of note from elapsed time (i.e. how long until it should be played).
    If negative, it means that the note has already been played and it's the distance from when it has been played."
   (let [note-time (j/get note :time)]
@@ -85,6 +85,10 @@
       :else (- note-time elapsed-time)
       )
     )
+  )
+
+(defn get-distance-from-note-off [note elapsed-time]
+  (+ (get-distance-from-note-on elapsed-time note) (j/get note :duration))
   )
 
 (defn play-midi-note [note] (j/call note :synthF))
@@ -101,7 +105,7 @@
 (defn display-note-rect [note]
   (let [
         elapsed-time (get-elapsed-time)
-        distance-from-note-on-sec (note-distance-smooth elapsed-time note)
+        distance-from-note-on-sec (get-distance-from-note-on elapsed-time note)
         pitch-midi-number (j/get note :midi)
         note-duration-sec (j/get note :duration)
         canvas-height 500
@@ -119,27 +123,19 @@
     )
   )
 
-(defn has-been-played [elapsed-time note]
-  ""
-  (let [
-        distance-from-note-on (note-distance-smooth elapsed-time note)
-        distance-from-note-off (+ distance-from-note-on (j/get note :duration))
-        ]
-    ;(js/console.log "elapsed-time")
-    ;(js/console.log elapsed-time)
-    ;(js/console.log "distance-from-note-on")
-    ;(js/console.log distance-from-note-on)
-    ;(js/console.log "distance-from-note-off")
-    ;(js/console.log distance-from-note-off)
-    (< distance-from-note-off -1)
-    )
-  )
+(defn has-started-playing [note elapsed-time]
+  "Whether a 'note on' time has passed (i.e. it has started rolling over canvas height)"
+  (< (get-distance-from-note-on elapsed-time note) 0))
+
+(defn has-finished-playing [note elapsed-time]
+  "Whether a 'note off' time has passed (i.e. it has completely rolled over canvas height)"
+  (< (get-distance-from-note-off note elapsed-time) 0))
 
 (defn inspect-note [note elapsed-time]
   "Return true if note rect should be be in canvas, false otherwise.
    A note at height > 0 and < canvas-height"
   (let [
-        distance-from-note-on-sec (note-distance-smooth elapsed-time note)
+        distance-from-note-on-sec (get-distance-from-note-on elapsed-time note)
         pitch-midi-number (j/get note :midi)
         note-duration-sec (j/get note :duration)
         canvas-height 500
@@ -171,19 +167,23 @@
 
 (defn setup [frame-rate fixed-delay midi-track]
   (fn []
-    (js/console.log "Starting sketch")
-    (js/console.log midi-track)
-    (q/frame-rate frame-rate)
-    ;(j/assoc! js/MIDIjs :player_callback player-callback)
-    ;(q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
-    ;    (q/set-state! :player-time nil :notes midi-track-notes :start (+ (q/millis) fixed-delay)))
-    (q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
+    (let [
+          _ (js/console.log "Starting sketch")
+          _ (js/console.log midi-track)
+          notes (j/get midi-track :notes)
+          ]
+      (q/frame-rate frame-rate)
+      ;(j/assoc! js/MIDIjs :player_callback player-callback)
+      ;(q/set-state! :notes (j/get midi-track :notes) :start (+ (q/millis) fixed-delay)))
+      ;(q/set-state! :player-time nil :notes midi-track-notes :start (+ (q/millis) fixed-delay)))
+      (q/set-state! :notes [(first notes)] :start (+ (q/millis) fixed-delay)))
+    )
   )
 
 (defn is-not-future-note [note]
   (let [
         elapsed-time (get-elapsed-time)
-        distance-from-note-on-sec (note-distance-smooth elapsed-time note)
+        distance-from-note-on-sec (get-distance-from-note-on elapsed-time note)
         canvas-height 500
         tile-y (height-for-distance canvas-height distance-from-note-on-sec)
         ]
@@ -201,7 +201,7 @@
     :else (let [
                 elapsed-time (get-elapsed-time)
                 note (first notes)
-                distance-from-note-on-sec (note-distance-smooth elapsed-time note)
+                distance-from-note-on-sec (get-distance-from-note-on elapsed-time note)
                 pitch-midi-number (j/get note :midi)
                 note-duration-sec (j/get note :duration)
                 canvas-height 500
@@ -228,14 +228,19 @@
         ;present (first present-future)
         ;future (last present-future)
         notes-to-display (take-while (fn [note] (is-not-future-note note)) notes)
-        played-not-played (split-with (fn [note] (has-been-played elapsed-time note)) notes)
+        ; FIXME do inline F:
+        notes-to-play (take-while (fn [note] (has-started-playing note elapsed-time)) notes-to-display) ; notes-to-display)
+        _ (js/console.log (str "PLAY?" (count notes-to-play)))
+        to-remove-to-keep (split-with (fn [note] (has-finished-playing note elapsed-time)) notes)
+        _ (js/console.log (str (count (first to-remove-to-keep)) " to remove"))
+        _ (js/console.log (str (count (last to-remove-to-keep)) " to keep"))
         ]
     (q/background 255)
     (q/fill 0)
     ;(q/clear
 
     ;FIXME play all of them at once instead of map
-    (dorun (map play-midi-note (first played-not-played)))
+    (dorun (map play-midi-note notes-to-play))
 
     ;(js/console.log (str "notes: " (count notes)))
     ;(js/console.log (str "notes-to-display: " (count notes-to-display)))
@@ -245,7 +250,7 @@
     ;(dorun (map display-note-rect notes))
     (dorun (map display-note-rect notes-to-display))
 
-    (swap! (q/state-atom) assoc-in [:notes] (last played-not-played))
+    (swap! (q/state-atom) assoc-in [:notes] (last to-remove-to-keep))
     ;(swap! (q/state-atom) assoc-in [:notes] (concat present future))
     ;(swap! (q/state-atom) assoc-in [:player-time] evt)
 
