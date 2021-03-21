@@ -144,6 +144,7 @@
     ;(dorun (map display-note-rect notes))
     (dorun (map display-note-rect (concat notes-playing in-canvas)))
     ;(js/console.log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    ; TODO: https://stackoverflow.com/questions/45484308/multiple-assoc-ins-in-one-swap-operation-eg-to-update-x-y-of-point-at-the-sa
     (swap! (q/state-atom) assoc-in [:notes] (doall (concat in-canvas-not-playing not-in-canvas)))
     (swap! (q/state-atom) assoc-in [:notes-playing] (concat new-notes-playing notes-playing))
     ;(js/console.log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")

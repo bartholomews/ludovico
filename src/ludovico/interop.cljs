@@ -1,9 +1,16 @@
 (ns ludovico.interop
   (:require
+    ; https://github.com/danigb/soundfont-player
+    ["soundfont-player" :as soundfont]
+    ; https://github.com/Tonejs/Midi
+    ["@tonejs/midi" :refer [Midi]]
     [applied-science.js-interop :as j]
     [cljs.core.match :refer-macros [match]]
     [dommy.core :refer-macros [sel sel1]]
     ))
+
+(println Midi)
+(println (Midi))
 
 (defn with-fixed-delay [delay-ms f] (js/setTimeout f delay-ms))
 
@@ -20,6 +27,13 @@
     )
   )
 
-(defn get-instrument [context instrument] (j/call js/Soundfont :instrument context instrument))
+;(js/console.log midi-parser-js)
 
-(defn get-midi-src [midi-src] (j/call js/Midi :fromUrl midi-src))
+(defn hello-moment []
+  (println (str "Hello there it's "
+                (.format (moment) "dddd")))
+  )
+
+(defn get-instrument [context instrument] (j/call soundfont :instrument context instrument))
+
+(defn get-midi-src [midi-src] (j/call Midi :fromUrl midi-src))

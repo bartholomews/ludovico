@@ -1,112 +1,32 @@
-# Ludovico
+# ludovico
 
-This is the Ludovico project.
+[Template](https://rigsomelight.com/figwheel-main-template) 
+from [figwheel-main](https://figwheel.org/)
 
-## Development mode
+## Development
 
-Running the Figwheel built in server doesn't seem to work with `cljs-bach`  
-(might be an issue similar to https://github.com/luminus-framework/luminus-template/issues/237)  
-So you need to run the standalone server at port 3000.
+To get an interactive development environment run:
 
-To start the Figwheel compiler, navigate to the project folder and run the following command in the terminal:
+    lein fig:build
 
-```
-lein figwheel
-```
+This will auto compile and send all changes to the browser without the
+need to reload. After the compilation process is complete, you will
+get a Browser Connected REPL. An easy way to try it is:
 
-Figwheel will automatically push cljs changes to the browser. The server will be available at [http://localhost:3449](http://localhost:3449) once Figwheel starts up. 
+    (js/alert "Am I connected?")
 
-Figwheel also starts `nREPL` using the value of the `:nrepl-port` in the `:figwheel`
-config found in `project.clj`. By default the port is set to `7002`.
+and you should see an alert in the browser window.
 
-The figwheel server can have unexpected behaviors in some situations such as when using
-websockets. In this case it's recommended to run a standalone instance of a web server as follows:
+To clean all compiled files:
 
-```
-lein do clean, run
-```
+	lein clean
 
-The application will now be available at [http://localhost:3000](http://localhost:3000).
+To create a production build run:
 
-### Style compilation
-To compile [sass](https://github.com/Deraen/sass4clj) sources and then watch for changes and recompile until interrupted, run
-```
-lein sass4clj auto
-```
-
-### Optional development tools
-
-Start the browser REPL:
-
-```
-$ lein repl
-```
-The Jetty server can be started by running:
-
-```clojure
-(start-server)
-```
-and stopped by running:
-```clojure
-(stop-server)
-```
-
-## Running the tests
-To run [cljs.test](https://github.com/clojure/clojurescript/blob/master/src/main/cljs/cljs/test.cljs) tests using headless chrome install karma and its plugins:
-
-```
-npm install -g karma-cli
-npm install karma karma-cljs-test karma-chrome-launcher --save-dev
-lein doo chrome-headless test once
-```
-
-For other environments please check [doo's documentation](https://github.com/bensu/doo#setting-up-environments).
+	lein clean
+	lein fig:min
 
 
-For installation instructions of PhantomJS, please see [this](http://phantomjs.org/download.html).
+## License
 
-## Building for release
-
-```
-lein do clean, uberjar
-```
-
-## Deploying to Heroku
-
-Make sure you have [Git](http://git-scm.com/downloads) and [Heroku toolbelt](https://toolbelt.heroku.com/) installed, then simply follow the steps below.
-
-Optionally, test that your application runs locally with foreman by running.
-
-```
-foreman start
-```
-
-Now, you can initialize your git repo and commit your application.
-
-```
-git init
-git add .
-git commit -m "init"
-```
-create your app on Heroku
-
-```
-heroku create
-```
-
-optionally, create a database for the application
-
-```
-heroku addons:add heroku-postgresql
-```
-
-The connection settings can be found at your [Heroku dashboard](https://dashboard.heroku.com/apps/) under the add-ons for the app.
-
-deploy the application
-
-```
-git push heroku master
-```
-
-Your application should now be deployed to Heroku!
-For further instructions see the [official documentation](https://devcenter.heroku.com/articles/clojure).
+Distributed under the Eclipse Public License either version 1.0 or (at your option) any later version.

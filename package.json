@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
+  },
+  "dependencies": {
+    "@tonejs/midi": "^2.0.27",
+    "moment": "^2.29.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "soundfont-player": "^0.12.0"
+  }
+}

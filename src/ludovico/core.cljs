@@ -1,26 +1,35 @@
 (ns ludovico.core
   (:require
+    [moment]
+    [goog.dom :as gdom]
+    [reagent.dom :as rdom]
+    ;
+    [clerk.core :as clerk]
+    [accountant.core :as accountant]
     [cljs.core.match :refer-macros [match]]
     [dommy.core :refer-macros [sel sel1]]
     [reagent.core :as reagent :refer [atom]]
-    [reagent.dom :as rdom]
+    ;[reagent.dom :as rdom]
     [reagent.session :as session]
     [reitit.frontend :as reitit]
-    [clerk.core :as clerk]
-    [accountant.core :as accountant]
-    [goog.dom :as gdom]
+    ;[clerk.core :as clerk]
+    ;[accountant.core :as accountant]
+    ;[goog.dom :as gdom]
     [ludovico.player :as player]
     [ludovico.synth :as synth]
-    [reagent-material-ui.core.input-label :refer [input-label]]
-    [reagent-material-ui.core.menu-item :refer [menu-item]]
-    [reagent-material-ui.core.form-control :refer [form-control]]
-    [reagent-material-ui.core.select :refer [select]]
+    ;[reagent-material-ui.core.input-label :refer [input-label]]
+    ;[reagent-material-ui.core.menu-item :refer [menu-item]]
+    ;[reagent-material-ui.core.form-control :refer [form-control]]
+    ;[reagent-material-ui.core.select :refer [select]]
     [applied-science.js-interop :as j]
     )
   )
 
-;; -------------------------
-;; Routes
+(.addEventListener
+  js/window
+  "DOMContentLoaded"
+  (fn [] (js/console.log "Page loaded."))
+  )
 
 (def router
   (reitit/router
@@ -35,15 +44,6 @@
     (:path (reitit/match-by-name router route params))
     (:path (reitit/match-by-name router route))))
 
-;; -------------------------
-;; Page components
-
-(.addEventListener
-  js/window
-  "DOMContentLoaded"
-  (fn [] (js/console.log "Page loaded."))
-  )
-
 (defn on-midi-file-selected [input]
   (let
     [fr (js/FileReader.)
@@ -56,28 +56,47 @@
   )
 
 (defn home-page []
-  (fn []
-    [:span.main
-     [:h1 "Ludovico"]
-     ; https://material-ui.com/components/selects/
-     [:div
-      [:h5 {:class "section-label"} "Load Midi"]
-      ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
-      [:audio#midi-track {:src (get @player/midi-player-atom :midi-src) :status "stopped"}]
-      [:input {:type "file" :on-change on-midi-file-selected}]
-      [:div
-       [:button {:on-click #(player/on-play-btn-click)} [:span (get @player/midi-player-atom :next)]]
-       [:button {:on-click #(player/on-stop-btn-click)} [:span "Stop"]]
-       ]
-      ]
-     [:div [:button {:aria-checked "false" :on-click (synth/test-bach! 74 0.1)} [:span "Test Bach"]]]
-     [:div [:button {:aria-checked "false" :on-click (synth/test-soundfont!)} [:span "Test Soundfont"]]]
-     ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     [:div#sketch]
-     ;[:ul [:li [:a {:href (path-for :songs)} "Songs list"]]]
+  [:span.main
+   [:h1 "Ludovico"]
+   ; https://material-ui.com/components/selects/
+   [:div
+    [:h5 {:class "section-label"} "Load Midi"]
+    ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
+    [:audio#midi-track {:src (get @player/midi-player-atom :midi-src) :status "stopped"}]
+    [:input {:type "file" :on-change on-midi-file-selected}]
+    [:div
+     [:button {:on-click #(player/on-play-btn-click)} [:span (get @player/midi-player-atom :next)]]
+     [:button {:on-click #(player/on-stop-btn-click)} [:span "Stop"]]
      ]
-    )
+    ]
+   [:div [:button {:aria-checked "false" :on-click (synth/test-bach! 74 0.1)} [:span "Test Bach"]]]
+   [:div [:button {:aria-checked "false" :on-click (synth/test-soundfont!)} [:span "Test Soundfont"]]]
+   ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   [:div#sketch]
+   ;[:ul [:li [:a {:href (path-for :songs)} "Songs list"]]]
+   ]
   )
+
+(println "This text is printed from src/hello_world/core.cljs. Go ahead and edit it and see reloading in action.")
+
+(defn multiply [a b] (* a b))
+
+;;; define your app data so that it doesn't get over-written on reload
+;(defonce app-state (atom {:text "Hello world!"}))
+
+;(defn hello-world []
+;  [:div
+;   [:h1 (:text @app-state)]
+;   [:h3 "Edit this in src/hello_world/core.cljs and watch it change!"]])
+;
+
+;;; specify reload hook with ^;after-load metadata
+;(defn ^:after-load on-reload []
+;  (mount-app-element)
+;  ;; optionally touch your app-state to force rerendering depending on
+;  ;; your application
+;  ;; (swap! app-state update-in [:__figwheel_counter] inc)
+;  )
 
 (defn songs-page []
   (fn []
@@ -106,16 +125,13 @@
 ;; -------------------------
 ;; Translate routes -> page components
 
+; TODO: https://www.opensourcery.co.za/2016/05/27/smooth-client-side-routing-in-a-figwheel-only-project/
 (defn page-for [route]
   (case route
     :index #'home-page
     :about #'about-page
     :songs #'songs-page
     :song #'song-page))
-
-
-;; -------------------------
-;; Page mounting component
 
 (defn current-page []
   (fn []
@@ -129,8 +145,21 @@
         [:p "Ludovico was generated by the "
          [:a {:href "https://github.com/reagent-project/reagent-template"} "Reagent Template"] "."]]])))
 
-;; -------------------------
-;; Initialize app
+
+;(defn get-app-element []
+;  (gdom/getElement "app"))
+
+;(defn mount [el]
+;  ;(rdom/render [hello-world] el))
+;  (rdom/render [home-page] el))
+
+;(defn mount-app-element []
+;  (when-let [el (get-app-element)]
+;    (mount el)))
+;
+;;; conditionally start your application based on the presence of an "app" element
+;;; this is particularly helpful for testing this ns without launching the app
+;(mount-app-element)
 
 (defn mount-root []
   (rdom/render [current-page] (gdom/getElement "app")))
@@ -153,3 +182,5 @@
        (boolean (reitit/match-by-path router path)))})
   (accountant/dispatch-current!)
   (mount-root))
+
+(init!)
