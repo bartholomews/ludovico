@@ -1,32 +1,78 @@
 # ludovico
 
-[Template](https://rigsomelight.com/figwheel-main-template) 
-from [figwheel-main](https://figwheel.org/)
+Template from ["Fullstack Workflow with shadow-cljs"](
+https://code.thheller.com/blog/shadow-cljs/2024/10/18/fullstack-cljs-workflow-with-shadow-cljs.html
+)
 
-## Development
+### Starting the REPL
 
-To get an interactive development environment run:
+```shell
+npx shadow-cljs clj-repl
+```
 
-    lein fig:build
+## Intellij/[Cursive](https://cursive-ide.com) dev setup
 
-This will auto compile and send all changes to the browser without the
-need to reload. After the compilation process is complete, you will
-get a Browser Connected REPL. An easy way to try it is:
+- "Import Project from Deps" via `deps.edn`
 
-    (js/alert "Am I connected?")
+### CLJ REPL
 
-and you should see an alert in the browser window.
+Edit the "Clojure REPL / Remote" run config:
+- `Use Port from file with localhost / Use standard port file`
 
-To clean all compiled files:
+### REPL Workflow
 
-	lein clean
+Create a new [REPL command](https://cursive-ide.com/userguide/repl.html#repl-commands),
+- "Language and Frameworks" -> "Clojure" -> "REPL Commands"
+- Give it a name, e.g. `repl/restart`
+- "Before execution" -> "File Sync" -> `Sync all modified files`
+- "Execution" -> """Execute command" -> `(require 'repl) (repl/restart)`
 
-To create a production build run:
+Then you can assign a "Keymap" to restart the server and reload changes with a single command
+(e.g. `⌃ + ⌥ + ↩`)
 
-	lein clean
-	lein fig:min
+If you want to reload files in the Cursive REPL and don't need to restart the dev server,
+you can also use built-in Cursive commands - see [here](https://cursive-ide.com/userguide/repl.html#interaction-with-the-editor)
 
+The dev server also starts `shadow-cljs` to watch the `public` directory.
 
-## License
+- The shadow-cljs UI is available at http://localhost:9630  
+- The [dev server + frontend](./src/dev/repl.clj) is available at http://localhost:18081
 
-Distributed under the Eclipse Public License either version 1.0 or (at your option) any later version.
+### CLJS REPL
+
+The frontend is set up to hot reload automatically as part of `dev/repl.clj`.
+You can switch to the CLJS REPL via `(shadow.cljs.devtools.api/repl :frontend)`
+
+### Deployment
+
+Build the production-optimized frontend assets
+
+```shell
+npx shadow-cljs release frontend
+```
+
+Start the [standalone server](./src/main/ludovico/server.clj) 
+at http://localhost:3000
+
+```shell
+clj -M -m ludovico.server
+```
+
+## Resources
+
+- https://shadow-cljs.github.io/docs/UsersGuide
+- Example of CLJ + CLJS => https://github.com/thosmos/riverdb?tab=readme-ov-file
+
+## Additional info
+
+- Start cljs devtools via `clj` (as opposed to `npx`)
+```shell
+clj -M -m shadow.cljs.devtools.cli clj-repl
+```
+
+- If you need to run the frontend on a separate port (e.g. for dev env if it gets decoupled from the backend server),
+  you can add `:dev-http {<PORT> "public"}` to `shadow-cljs.edn`.
+
+- Edit the "Clojure REPL / Local" run config
+    - Type of REPL: `clojure.main`
+    - Parameters: `--main cljs.main`
