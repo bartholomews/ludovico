@@ -6,10 +6,11 @@
   )
 
 (defn my-handler [req]
-  (tap> req)                                                ;; http://localhost:9630/inspect
-  {:status 200
+  ;; http://localhost:9630/inspect
+  (tap> req)
+  {:status  200
    :headers {"content-type" "text/plain"}
-   :body "Hello World!"})
+   :body    "Hello World!"})
 
 
 (def handler

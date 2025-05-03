@@ -4,11 +4,20 @@ Template from ["Fullstack Workflow with shadow-cljs"](
 https://code.thheller.com/blog/shadow-cljs/2024/10/18/fullstack-cljs-workflow-with-shadow-cljs.html
 )
 
+## Quickstart
+
 ### Starting the REPL
 
 ```shell
 npx shadow-cljs clj-repl
 ```
+
+Go to http://localhost:9630
+
+### Start the local server
+`⌃ + ⌥ + ↩`
+
+Go to http://localhost:18081
 
 ## Intellij/[Cursive](https://cursive-ide.com) dev setup
 
@@ -73,6 +82,21 @@ clj -M -m shadow.cljs.devtools.cli clj-repl
 - If you need to run the frontend on a separate port (e.g. for dev env if it gets decoupled from the backend server),
   you can add `:dev-http {<PORT> "public"}` to `shadow-cljs.edn`.
 
-- Edit the "Clojure REPL / Local" run config
+- To spin a custom CLJS Repl in Intellij, edit the "Clojure REPL / Local" run config
     - Type of REPL: `clojure.main`
     - Parameters: `--main cljs.main`
+  By default it starts at http://localhost:9000. 
+  Validate the connection by typing `(js/alert "Hello CLJS!")` in the REPL.
+
+## Known warnings
+
+```
+spec-tools.openapi.core/openapi-spec is deprecated
+```
+[]
+This is an unused function in [spec-tool](https://github.com/metosin/spec-tools/blob/master/src/spec_tools/openapi/core.cljc#L174), 
+the warning is due to a [known CLJS issue](https://clojure.atlassian.net/browse/CLJS-2000).
+It will hopefully be removed in future versions of `coercion`.
+
+- Interop with JS functions will cause warnings on `js/...` function calls,
+it might be a good idea to disable `Editor -> Inspections -> Clojure -> Unresolved symbol` 
