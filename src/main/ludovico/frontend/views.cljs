@@ -1,6 +1,7 @@
 (ns ludovico.frontend.views
   (:require
     [applied-science.js-interop :as j]
+    [ludovico.frontend.player :as player]
     [reitit.frontend.easy :as rfe]
     ))
 
@@ -26,7 +27,7 @@
      files (j/get-in input [:target :files])
      file (first files)
      ]
-    ; (j/assoc! fr :onload (fn [e] (player/on-midi-loaded (j/get-in e [:target :result]))))
+     (j/assoc! fr :onload (fn [e] (player/on-midi-loaded (j/get-in e [:target :result]))))
     (j/call fr :readAsDataURL file)
     )
   )

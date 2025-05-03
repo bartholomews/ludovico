@@ -28,13 +28,13 @@
     )
   )
 
-;(js/console.log midi-parser-js)
+(js/console.log midi-parser-js)
 
 (defn hello-moment []
   (println (str "Hello there it's "
                 (.format (js/moment) "dddd")))
   )
 
-;; (defn get-instrument [context instrument] (j/call soundfont :instrument context instrument))
+(defn get-instrument [context instrument] (j/call soundfont :instrument context instrument))
 
 (defn get-midi-src [midi-src] (j/call Midi :fromUrl midi-src))
