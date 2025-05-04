@@ -5,11 +5,19 @@
     [cljs.core.match :refer-macros [match]]
     [dommy.core :refer-macros [sel sel1]]
     [ludovico.frontend.interop :as in]
+    ; https://github.com/danigb/smplr
+    ["smplr" :refer [Soundfont]]
     ))
+
+(js/console.log "Soundfonto:")
+;(js/console.log Soundfont)
 
 ; https://github.com/ctford/cljs-bach
 ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
-;(defonce context (bach/audio-context))
+; (defonce context (bach/audio-context))
+(defonce context (js/AudioContext.))
+
+(defn get-instrument [instrument-name] (js/Soundfont. context {:instrument instrument-name}))
 
 ;(defn getSource []
 ;  "https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API#Loading_sound"
@@ -41,14 +49,19 @@
 ;    (fn [] (bach/run-with synth context (bach/current-time context) duration))))
 
 ; https://github.com/danigb/soundfont-player
-(defn test-soundfont! []
-  (fn [] (in/when-resolved (in/get-instrument context "applause") (fn [instrument] (j/call instrument :play "C4")))))
+;(defn test-soundfont! []
+;  (fn [] (in/when-resolved (in/get-instrument context "applause") (fn [instrument] (j/call instrument :play "C4")))))
 
 ; https://github.com/danigb/soundfont-player
-(defn play-soundfont! [instrument midi-number current-time duration]
+; https://github.com/danigb/smplr?tab=readme-ov-file#play
+(defn play-soundfont! [midi-number current-time duration]
   "Play a note with Soundfont"
-  (j/call instrument :play midi-number current-time {:duration duration})
-  )
+  ; (let [instrument get-instrument "marimba"]
+  ;(j/call instrument :play midi-number current-time {:duration duration})
+  ; TODO[FB] inject instrument
+  (j/call (get-instrument "marimba") :start {:note midi-number :time current-time :duration duration})
+  ;)
+)
 
 (defn make-soundfont-note [midijs-note]
   (->

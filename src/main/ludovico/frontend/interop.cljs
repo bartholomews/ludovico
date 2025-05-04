@@ -1,5 +1,6 @@
 (ns ludovico.frontend.interop
   (:require
+    ; TODO[FB] migrating to https://github.com/danigb/smplr
     ; https://github.com/danigb/soundfont-player
     ; ["soundfont-player" :as soundfont]
     ; https://github.com/Tonejs/Midi
@@ -22,19 +23,20 @@
     )
   )
 
-(defn when-resolved [promiseF actionF]
-  (let [promise (j/call "js/Promise" :resolve promiseF)]
-    (j/call promise :then actionF)
-    )
-  )
+;(defn when-resolved [promiseF actionF]
+;  (.then promiseF actionF)
+;  ;(.then (js/Promise.resolve promiseF)
+;  ;       (fn [res] (actionF res))
+;  ;  )
+;  )
 
-(js/console.log midi-parser-js)
+; (js/console.log midi-parser-js)
 
 (defn hello-moment []
   (println (str "Hello there it's "
                 (.format (js/moment) "dddd")))
   )
 
-(defn get-instrument [context instrument] (j/call soundfont :instrument context instrument))
+; (defn get-instrument [context instrument] (j/call soundfont :instrument context instrument))
 
 (defn get-midi-src [midi-src] (j/call Midi :fromUrl midi-src))

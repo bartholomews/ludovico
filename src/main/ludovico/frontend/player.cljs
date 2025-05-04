@@ -15,26 +15,44 @@
 
 (defn update-player-label-next [state] (swap-vals! midi-player-atom assoc :next state))
 
-(defn addSynthF [note instrument]
+(defn addSynthF [note]
   (let [
         midi-note (j/get note :midi)
         duration (j/get note :duration)
         ]
     (j/assoc! note :synthF
               ;(synth/play-bach! midi-note duration)
-              (fn [context] (synth/play-soundfont! instrument midi-note (j/get context :currentTime) duration))
+              (fn [context] (synth/play-soundfont! midi-note (j/get context :currentTime) duration))
               )
     )
   )
 
-(defn with-synth-f [instrument] (fn [notes] (j/call notes :map (fn [note] (addSynthF note instrument)))))
+;(defn with-synth-f [instrument] 
+;  (fn [notes] 
+;    (j/call notes :map (fn [note] (addSynthF note instrument))))
+;  )
+
+(defn inject-player-function [notes]
+  (j/call notes :map (fn [note] (addSynthF note)))
+  ;(j/call notes :map (fn [note] (note)))
+  ;
+  ; (fn [notes]
+  ;(j/call notes :map (fn [note] (addSynthF note instrument)))
+  ;)
+  )
 
 (defn parse-midi-track [track]
   (let [
         midi-instrument-number (j/get-in track [:instrument :number])
         track-instrument (get midi/instruments midi-instrument-number)]
-    (in/when-resolved (in/get-instrument synth/context track-instrument)
-                      (fn [instrument] (j/update! track :notes (with-synth-f instrument))))
+    (js/console.log midi-instrument-number)
+    ; (js/console.log track-instrument)
+    (js/console.log "TODO: Use the new sound library to parse midi notes")
+    ; (.then (in/get-instrument synth/context track-instrument)
+    ;(j/update! track :notes (fn [notes] inject-player-function notes))
+    (j/update! track :notes inject-player-function)
+    ;(in/when-resolved (in/get-instrument synth/context track-instrument)
+    ;                  (fn [instrument] (j/update! track :notes (with-synth-f instrument))))
     )
   )
 
@@ -47,8 +65,10 @@
     (j/call :filter (fn [tracks] (not (empty? (j/get tracks :notes)))))
     ; TODO: User should pick channel from available (i.e. with notes / instrument number etc)
     ; https://github.com/danigb/soundfont-player/blob/master/INSTRUMENTS.md
+    ; (.then (in/get-instrument "acoustic_grand_piano"))
     ;(in/when-resolved (in/get-instrument "acoustic_grand_piano"))
     (j/call :map parse-midi-track)
+    (js/console.log)
     )
   )
 
@@ -59,11 +79,19 @@
 
 (defn with-midi-tracks [midi-src callback]
   "https://github.com/Tonejs/Midi"
-  (in/when-resolved (in/get-midi-src midi-src)
-                    (fn [midi-js] (in/when-all-resolved (parse-midi-tracks midi-js)
-                                                        (fn [res] (update-midi-player-atom midi-src res callback))
-                                                        )))
-  )
+  (.then (in/get-midi-src midi-src)
+         parse-midi-tracks
+           ; (fn [res] (update-midi-player-atom midi-src res callback)
+           ;)
+         )
+  
+  ;(in/when-resolved (in/get-midi-src midi-src)
+  ;                  (fn [res] (js/console.log res))
+                    ;(fn [midi-js] (in/when-all-resolved (parse-midi-tracks midi-js)
+                    ;                                    (fn [res] (update-midi-player-atom midi-src res callback))
+                    ;                                    )))
+                    ;  )
+)
 
 (defn srcF [f el] (f (dommy/attr el "src")))
 
