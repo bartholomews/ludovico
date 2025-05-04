@@ -5,7 +5,7 @@
     [dommy.core :as dommy :refer-macros [sel sel1]]
     [ludovico.frontend.interop :as in]
     [ludovico.frontend.midi :as midi]
-    ; [ludovico.frontend.sketch :as sketch]
+    [ludovico.frontend.sketch :as sketch]
     [ludovico.frontend.synth :as synth]
     [reagent.core :as r]
     ))
