@@ -3,16 +3,19 @@
     [applied-science.js-interop :as j]
     [cljs.core.match :refer-macros [match]]
     [dommy.core :as dommy :refer-macros [sel sel1]]
-    [ludovico.frontend.interop :as in]
     [ludovico.frontend.midi :as midi]
     [ludovico.frontend.sketch :as sketch]
     [reagent.core :as r]
     ; https://github.com/danigb/smplr
     ["smplr" :refer [Soundfont]]
+    ; https://github.com/Tonejs/Midi
+    ["@tonejs/midi" :refer [Midi]]
     ))
 
 (js/console.log "Soundfont:")
 (js/console.log Soundfont)
+(js/console.log "Midi:")
+(js/console.log Midi)
 
 ; https://github.com/ctford/cljs-bach
 ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
@@ -73,6 +76,12 @@
     )
   )
 
+(defn with-midi-file [url callback] 
+  (.then (j/call Midi :fromUrl url)
+         callback
+    )
+  )
+
 (defn parse-midi-tracks [midi-js]
   "Return the main track (i.e. at channel 1) of the midi-js"
   (js/console.log "Parsing midi tracks:")
@@ -88,31 +97,16 @@
   (swap-vals! midi-player-atom assoc :midi-src midi-src :tracks midi-tracks)
   (js/console.log "Loaded midi tracks:")
   (js/console.log midi-tracks)
-  ; (callback midi-tracks)
-  ) 
+  )
 
-(defn with-midi-tracks [midi-src]
+(defn on-midi-loaded [midi-src]
+  "https://github.com/prasincs/web-audio-project/blob/master/src-cljs/web_audio_project/client.cljs"
   "https://github.com/Tonejs/Midi"
-  (.then
-    (.then (in/get-midi-src midi-src)
-           parse-midi-tracks
-           ; (fn [res] (update-midi-player-atom midi-src res callback)
-           ;)
-           )
-    (fn [res] 
-      ; (js/console.log res)
-      (update-midi-player-atom midi-src res)
-      res
+    (.then
+      (with-midi-file midi-src parse-midi-tracks)
+      (fn [res] (update-midi-player-atom midi-src res))
       )
     )
-  
-  ;(in/when-resolved (in/get-midi-src midi-src)
-  ;                  (fn [res] (js/console.log res))
-                    ;(fn [midi-js] (in/when-all-resolved (parse-midi-tracks midi-js)
-                    ;                                    (fn [res] (update-midi-player-atom midi-src res callback))
-                    ;                                    )))
-                    ;  )
-)
 
 (defn srcF [f el] (f (dommy/attr el "src")))
 
@@ -147,9 +141,3 @@
   (defn on-stop-btn-click []
     (sketch/exit)
     (update-player-label-next "Play"))
-
-  (defn on-midi-loaded [midi-src]
-    "https://github.com/prasincs/web-audio-project/blob/master/src-cljs/web_audio_project/client.cljs"
-    (with-midi-tracks midi-src)
-    )
-  
