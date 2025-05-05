@@ -2,6 +2,7 @@
   (:require
     [applied-science.js-interop :as j]
     [ludovico.frontend.player :as player]
+    [ludovico.frontend.synth :as synth]
     [reitit.frontend.easy :as rfe]
     ))
 
@@ -34,7 +35,7 @@
 
 (defn midi-page []
   [:span.main
-   [:h1 "Ludovico"]
+   [:h1 "Ludovico - Player"]
    ; https://material-ui.com/components/selects/
    [:div
     [:h5 {:class "section-label"} "Load Midi"]
@@ -42,12 +43,13 @@
     ; [:audio#midi-track {:src (get @player/midi-player-atom :midi-src) :status "stopped"}]
     [:input {:type "file" :on-change on-midi-file-selected}]
     [:div
-     ; [:button {:on-click #(player/on-play-btn-click)} [:span (get @player/midi-player-atom :next)]]
+      [:button {:on-click #(player/on-play-btn-click)} [:span (get @player/midi-player-atom :next)]]
      ; [:button {:on-click #(player/on-stop-btn-click)} [:span "Stop"]]
      ]
     ]
    ;[:div [:button {:aria-checked "false" :on-click (synth/test-bach! 74 0.1)} [:span "Test Bach"]]]
    ;[:div [:button {:aria-checked "false" :on-click (synth/test-soundfont!)} [:span "Test Soundfont"]]]
+   [:div [:button {:aria-checked "false" :on-click (player/test-smplr!)} [:span "Test Smplr"]]]
    ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    [:div#sketch]
    ;[:ul [:li [:a {:href (path-for :songs)} "Songs list"]]]
