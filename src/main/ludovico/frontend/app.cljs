@@ -1,7 +1,7 @@
 (ns ludovico.frontend.app
   (:require
+    [cljsjs.moment]
     [ludovico.frontend.views :as views]
-    [ludovico.frontend.interop :as ops]
     [reagent.core :as r]
     [reagent.dom :as rd]
     [reitit.coercion.spec :as rss]
@@ -9,7 +9,6 @@
     [reitit.frontend :as rf]
     [reitit.frontend.easy :as rfe]
     [fipp.edn :as fedn]
-    ;[moment]
     [goog.dom :as gdom]
     ;;[reagent.dom :as rdom]
     ;; [clerk.core :as clerk]
@@ -71,7 +70,7 @@
    ["/midi"
     {:name ::midi
      :view views/midi-page}]
-   
+
    ;["/item/:id"
    ; {:name ::item
    ;  :view item-page
@@ -201,18 +200,15 @@
 
 ;; https://github.com/metosin/reitit/blob/master/examples/frontend/src/frontend/core.cljs
 (defn init! []
-  (js/console.log "INIT")
-  (ops/hello-moment)
-  (rfe/start!
-
-    (rf/router routes {:data
-                       {:coercion rss/coercion}
-                       }       
-               )
-    (fn [m] (reset! match m))
-    ;; set to false to enable HistoryAPI
-    {:use-fragment true})
-  (rd/render [current-page] (gdom/getElement "app"))
+  (let [current-time (.format (js/moment) "dddd")]
+    (js/console.log (str "Today is " current-time))
+    (rfe/start!
+      (rf/router routes {:data {:coercion rss/coercion}})
+      (fn [m] (reset! match m))
+      ;; set to false to enable HistoryAPI
+      {:use-fragment true})
+    (rd/render [current-page] (gdom/getElement "app"))
+    )
   )
 
 (init!)

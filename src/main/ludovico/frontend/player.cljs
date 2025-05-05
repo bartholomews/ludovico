@@ -12,36 +12,32 @@
     ["@tonejs/midi" :refer [Midi]]
     ))
 
-(js/console.log "Soundfont:")
-(js/console.log Soundfont)
-(js/console.log "Midi:")
-(js/console.log Midi)
-
 ; https://github.com/ctford/cljs-bach
 ; https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
 ; (defonce context (bach/audio-context))
 (defonce context (js/AudioContext.))
 
 ; https://github.com/danigb/soundfont-player
-; https://github.com/danigb/smplr?tab=readme-ov-file#play
-(defn play-soundfont! [player midi-number current-time duration]
+; https://github.com/danigb/smplr#play
+(defn play-midi-note [player midi-note time-sec duration-sec]
   "Play a note with Soundfont (via smplr)"
   ; convert the map to a JS object (clj->js)
-  (j/call player :start #js {:note midi-number :time current-time :duration duration})
+  (j/call player :start #js {:note midi-note :time time-sec :duration duration-sec})
   )
 
 ; https://github.com/danigb/smplr?tab=readme-ov-file#play
 (defn test-smplr! []
   (let [
         test-player (Soundfont. context #js {:instrument "marimba"})
-        current-time (.-currentTime context)
+        ; current-time (.-currentTime context)
+        current-time (j/get :currentTime context)
         duration 3
         ]
     (fn []
       (js/console.log context)
       (js/console.log current-time)
       (js/console.log test-player)
-      (play-soundfont! test-player "C4" current-time duration)
+      (play-midi-note test-player "C4" current-time duration)
       )
     )
   )
@@ -51,15 +47,14 @@
 
 (defn update-player-label-next [state] (swap-vals! midi-player-atom assoc :next state))
 
-(defn addSynthF [player note]
+(defn addPlayF [player note]
+  "Inject in the note object a `synthF` function for playing the note"
   (let [
         midi-note (j/get note :midi)
         duration (j/get note :duration)
+        playF (fn [context] (play-midi-note player midi-note (j/get context :currentTime) duration))
         ]
-    (js/console.log midi-note)
-    (j/assoc! note :synthF
-              (fn [context] (play-soundfont! player midi-note (j/get context :currentTime) duration))
-              )
+    (j/assoc! note :synthF playF)
     )
   )
 
@@ -69,7 +64,7 @@
         ; https://github.com/danigb/soundfont-player/blob/master/INSTRUMENTS.md
         track-instrument (get midi/instruments midi-instrument-number)
         soundfont-player (Soundfont. context #js {:instrument track-instrument})
-        update-notes (fn [notes] (j/call notes :map #(addSynthF soundfont-player %)))
+        update-notes (fn [notes] (j/call notes :map #(addPlayF soundfont-player %)))
         ]
     (js/console.log track-instrument)
     (j/update! track :notes update-notes)

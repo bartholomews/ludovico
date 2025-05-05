@@ -23,13 +23,13 @@
   )
 
 (defn on-midi-file-selected [input]
-  (let
-    [fr (js/FileReader.)
-     files (j/get-in input [:target :files])
-     file (first files)
-     ]
-     (j/assoc! fr :onload (fn [e] (player/on-midi-loaded (j/get-in e [:target :result]))))
-    (j/call fr :readAsDataURL file)
+  (let [
+        fr (js/FileReader.) 
+        files (j/get-in input [:target :files]) 
+        file (first files)
+        ]
+     (j/assoc! fr :onload (fn [e] (player/on-midi-loaded (j/get-in e [:target :result])))) 
+     (j/call fr :readAsDataURL file)
     )
   )
 
@@ -58,7 +58,7 @@
 
 (defn about-page []
   [:div
-   [:h2 "About frontend"]
+   [:h2 "About ludovico"]
    [:ul
     [:li [:a {:href "https://bartholomews.io"} "external link"]]
     ;;[:li [:a {:href (rfe/href ::frontpage)} "Back to frontpage"]]
