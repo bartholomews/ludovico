@@ -6,22 +6,6 @@
     [reitit.frontend.easy :as rfe]
     ))
 
-(defn home-page []
-  [:div
-   [:h2 "Welcome to frontend"]
-
-   ;[:button
-   ; {:type "button"
-   ;  :on-click #(rfe/push-state ::item {:id 3})}
-   ; "Item 3"]
-
-   ;[:button
-   ; {:type "button"
-   ;  :on-click #(rfe/replace-state ::item {:id 4})}
-   ; "Replace State Item 4"]
-   ]
-  )
-
 (defn on-midi-file-selected [input]
   (let [
         fr (js/FileReader.) 
@@ -33,7 +17,7 @@
     )
   )
 
-(defn midi-page []
+(defn home-page []
   [:span.main
    [:h1 "Ludovico - Player"]
    ; https://material-ui.com/components/selects/
@@ -54,6 +38,10 @@
    [:div#sketch]
    ;[:ul [:li [:a {:href (path-for :songs)} "Songs list"]]]
    ]
+  )
+
+(defn item-page []
+  [:div [:h1 "test"]]
   )
 
 (defn about-page []

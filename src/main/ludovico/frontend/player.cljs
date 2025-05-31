@@ -2,7 +2,6 @@
   (:require
     [applied-science.js-interop :as j]
     [cljs.core.match :refer-macros [match]]
-    [dommy.core :as dommy :refer-macros [sel sel1]]
     [ludovico.frontend.midi :as midi]
     [ludovico.frontend.sketch :as sketch]
     [reagent.core :as r]
@@ -102,8 +101,6 @@
       (fn [res] (update-midi-player-atom midi-src res))
       )
     )
-
-(defn srcF [f el] (f (dommy/attr el "src")))
 
 (defn play []
   (let [first-track (first (get @midi-player-atom :tracks))]
