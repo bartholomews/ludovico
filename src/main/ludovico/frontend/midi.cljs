@@ -1,4 +1,4 @@
-(ns ludovico.midi
+(ns ludovico.frontend.midi
   (:require
     [cljs.core.match :refer-macros [match]]
     [dommy.core :refer-macros [sel sel1]]

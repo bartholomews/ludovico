@@ -1,0 +1,10 @@
+{
+ :deps true
+;;:dev-http {18080 "public"}
+:builds
+{:frontend
+ {:target   :browser
+  :modules  {:main {:init-fn ludovico.frontend.app/init}}
+  :devtools {:watch-dir "public"}
+  }}
+ }

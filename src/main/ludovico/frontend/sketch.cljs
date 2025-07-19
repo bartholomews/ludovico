@@ -1,4 +1,4 @@
-(ns ludovico.sketch
+(ns ludovico.frontend.sketch
   (:refer-clojure :exclude [update])
   (:require
     [applied-science.js-interop :as j]
